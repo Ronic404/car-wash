@@ -1,0 +1,23 @@
+{
+  "name": "car-wash",
+  "version": "1.0.0",
+  "description": "Приложение для автомойки с Telegram ботом и веб-панелью администратора",
+  "private": true,
+  "workspaces": [
+    "api",
+    "telegram-bot",
+    "admin-web"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=api\" \"npm run dev --workspace=telegram-bot\" \"npm run dev --workspace=admin-web\"",
+    "build": "npm run build --workspaces",
+    "install:all": "npm install && npm install --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+

@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Пользователи (клиенты)
+model User {
+  id        String   @id @default(uuid())
+  telegramId String @unique
+  firstName String?
+  lastName  String?
+  username  String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cars     Car[]
+  bookings Booking[]
+
+  @@map("users")
+}
+
+// Автомобили клиентов
+model Car {
+  id        String   @id @default(uuid())
+  userId    String
+  brand     String   // Марка
+  model     String   // Модель
+  year      Int?     // Год выпуска
+  color     String?  // Цвет
+  licensePlate String? // Гос. номер
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@map("cars")
+}
+
+// Услуги автомойки
+model Service {
+  id          String   @id @default(uuid())
+  name        String   // Название услуги
+  description String?  // Описание
+  price       Float    // Цена
+  duration    Int      // Длительность в минутах
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@map("services")
+}
+
+// Временные слоты для записи
+model TimeSlot {
+  id        String   @id @default(uuid())
+  date      DateTime // Дата и время слота
+  duration  Int      @default(60) // Длительность в минутах
+  isAvailable Boolean @default(true)
+  maxBookings Int    @default(1) // Максимальное количество записей в слот
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@index([date])
+  @@map("time_slots")
+}
+
+// Записи клиентов
+model Booking {
+  id        String   @id @default(uuid())
+  userId    String
+  carId     String
+  serviceId String
+  slotId    String
+  status    BookingStatus @default(PENDING)
+  notes     String?  // Заметки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  confirmedAt DateTime?
+  cancelledAt DateTime?
+
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  car     Car       @relation(fields: [carId], references: [id], onDelete: Cascade)
+  service Service   @relation(fields: [serviceId], references: [id])
+  slot    TimeSlot  @relation(fields: [slotId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([slotId])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING    // Ожидает подтверждения
+  CONFIRMED  // Подтверждена
+  CANCELLED  // Отменена
+  COMPLETED  // Завершена
+}
+
+// Сотрудники
+model Employee {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  phone     String?
+  position  String?  // Должность
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("employees")
+}
+
+// Администраторы
+model AdminUser {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Хешированный пароль
+  firstName String
+  lastName  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLogin DateTime?
+
+  @@map("admin_users")
+}
+

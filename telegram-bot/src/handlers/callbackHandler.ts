@@ -1,0 +1,103 @@
+import { Context } from 'telegraf';
+import { handleViewSlots, handleSelectSlot } from './slotsHandler';
+import { handleAddCar, handleCancelAddCar, handleSelectCar } from './carHandler';
+import { handleSelectService, handleMyBookings } from './bookingHandler';
+import { handleMyCars } from './carsHandler';
+import logger from '../config/logger';
+
+/**
+ * Обработчик всех callback запросов
+ */
+export async function handleCallback(ctx: Context) {
+  try {
+    const callbackData = (ctx.callbackQuery as any)?.data;
+
+    if (!callbackData) {
+      return;
+    }
+
+    // Главное меню
+    if (callbackData === 'back_to_menu') {
+      const telegramUser = ctx.from;
+      if (!telegramUser) {
+        return;
+      }
+
+      await ctx.answerCbQuery();
+      await ctx.reply('Главное меню:', {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '📅 Посмотреть доступные слоты', callback_data: 'view_slots' },
+            ],
+            [
+              { text: '🚗 Мои автомобили', callback_data: 'my_cars' },
+              { text: '📋 Мои записи', callback_data: 'my_bookings' },
+            ],
+          ],
+        },
+      });
+      return;
+    }
+
+    // Просмотр слотов
+    if (callbackData === 'view_slots') {
+      await handleViewSlots(ctx);
+      return;
+    }
+
+    // Выбор слота
+    if (callbackData.startsWith('select_slot_')) {
+      const slotId = callbackData.replace('select_slot_', '');
+      await handleSelectSlot(ctx, slotId);
+      return;
+    }
+
+    // Мои автомобили
+    if (callbackData === 'my_cars') {
+      await handleMyCars(ctx);
+      return;
+    }
+
+    // Добавление автомобиля
+    if (callbackData === 'add_car') {
+      await handleAddCar(ctx);
+      return;
+    }
+
+    // Отмена добавления автомобиля
+    if (callbackData === 'cancel_add_car') {
+      await handleCancelAddCar(ctx);
+      return;
+    }
+
+    // Выбор автомобиля
+    if (callbackData.startsWith('select_car_')) {
+      const carId = callbackData.replace('select_car_', '');
+      await handleSelectCar(ctx, carId);
+      return;
+    }
+
+    // Выбор услуги
+    if (callbackData.startsWith('select_service_')) {
+      const parts = callbackData.replace('select_service_', '').split('_');
+      const serviceId = parts[0];
+      const carId = parts[1];
+      const slotId = parts[2];
+      await handleSelectService(ctx, serviceId, carId, slotId);
+      return;
+    }
+
+    // Мои записи
+    if (callbackData === 'my_bookings') {
+      await handleMyBookings(ctx);
+      return;
+    }
+
+    logger.warn('Неизвестный callback', { callbackData, userId: ctx.from?.id });
+  } catch (error) {
+    logger.error('Ошибка обработки callback', { error, userId: ctx.from?.id });
+    await ctx.answerCbQuery('Произошла ошибка');
+  }
+}
+
