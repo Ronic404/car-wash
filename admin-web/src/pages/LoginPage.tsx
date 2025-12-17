@@ -1,69 +1,98 @@
-import { useState, FormEvent } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Form, Input, Button, Card, Typography, message } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuthStore } from '../store/authStore';
+import { useScreenSize } from '../hooks/useBreakpoint';
 import logger from '../utils/logger';
-import './LoginPage.scss';
+import styles from './LoginPage.module.scss';
+
+const { Title } = Typography;
 
 function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuthStore();
   const navigate = useNavigate();
+  const [form] = Form.useForm();
+  const { isMobile } = useScreenSize();
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const handleSubmit = async (values: { email: string; password: string }) => {
     setLoading(true);
 
     try {
-      await login(email, password);
+      await login(values.email, values.password);
+      message.success('Успешный вход!');
       navigate('/dashboard');
     } catch (err: any) {
       logger.error('Ошибка входа', { error: err });
-      setError(err.response?.data?.error || 'Ошибка входа. Проверьте данные.');
+      message.error(err.response?.data?.error || 'Ошибка входа. Проверьте данные.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-page">
-      <div className="login-page__container">
-        <h1>🚗 Панель администратора</h1>
-        <form onSubmit={handleSubmit} className="login-page__form">
-          {error && <div className="login-page__error">{error}</div>}
-          <div className="login-page__field">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+    <div className={styles.loginContainer}>
+      <Card
+        className={styles.loginCard}
+        bodyStyle={{ padding: isMobile ? 20 : 24 }}
+      >
+        <div className={styles.titleContainer}>
+          <Title level={isMobile ? 3 : 2}>🚗 Панель администратора</Title>
+        </div>
+
+        <Form
+          form={form}
+          name="login"
+          onFinish={handleSubmit}
+          layout="vertical"
+          size={isMobile ? 'middle' : 'large'}
+        >
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Введите email' },
+              { type: 'email', message: 'Введите корректный email' },
+            ]}
+          >
+            <Input
+              prefix={<UserOutlined />}
+              placeholder="Email"
               disabled={loading}
             />
-          </div>
-          <div className="login-page__field">
-            <label htmlFor="password">Пароль</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+          </Form.Item>
+
+          <Form.Item
+            name="password"
+            label="Пароль"
+            rules={[
+              { required: true, message: 'Введите пароль' },
+              { min: 6, message: 'Пароль должен быть не менее 6 символов' },
+            ]}
+          >
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder="Пароль"
               disabled={loading}
             />
-          </div>
-          <button type="submit" disabled={loading} className="login-page__submit">
-            {loading ? 'Вход...' : 'Войти'}
-          </button>
-        </form>
-      </div>
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              loading={loading}
+              className={styles.button}
+            >
+              Войти
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
     </div>
   );
 }
 
 export default LoginPage;
-

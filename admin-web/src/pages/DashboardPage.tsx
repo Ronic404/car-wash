@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { Card, Row, Col, Statistic, Typography, Spin } from 'antd';
+import {
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  CalendarOutlined,
+} from '@ant-design/icons';
 import apiService from '../services/apiService';
-import './DashboardPage.scss';
+import styles from './DashboardPage.module.scss';
+
+const { Title } = Typography;
 
 function DashboardPage() {
   const [stats, setStats] = useState({
@@ -11,7 +19,7 @@ function DashboardPage() {
     today: 0,
   });
 
-  const { data: bookings } = useQuery({
+  const { data: bookings, isLoading } = useQuery({
     queryKey: ['bookings'],
     queryFn: () => apiService.getBookings(),
   });
@@ -30,35 +38,56 @@ function DashboardPage() {
     }
   }, [bookings]);
 
+  if (isLoading) {
+    return <Spin size="large" className={styles.spin} />;
+  }
+
   return (
-    <div className="dashboard-page">
-      <h1>Дашборд</h1>
-      <div className="dashboard-page__stats">
-        <div className="dashboard-page__stat-card">
-          <div className="dashboard-page__stat-value">{stats.pending}</div>
-          <div className="dashboard-page__stat-label">Ожидают подтверждения</div>
-          <Link to="/bookings?status=PENDING" className="dashboard-page__stat-link">
-            Посмотреть →
-          </Link>
-        </div>
-        <div className="dashboard-page__stat-card">
-          <div className="dashboard-page__stat-value">{stats.confirmed}</div>
-          <div className="dashboard-page__stat-label">Подтвержденные</div>
-          <Link to="/bookings?status=CONFIRMED" className="dashboard-page__stat-link">
-            Посмотреть →
-          </Link>
-        </div>
-        <div className="dashboard-page__stat-card">
-          <div className="dashboard-page__stat-value">{stats.today}</div>
-          <div className="dashboard-page__stat-label">Записи на сегодня</div>
-          <Link to="/bookings" className="dashboard-page__stat-link">
-            Посмотреть →
-          </Link>
-        </div>
-      </div>
+    <div>
+      <Title level={2}>Дашборд</Title>
+      <Row gutter={[16, 16]} className={styles.statsRow}>
+        <Col xs={24} sm={12} lg={8}>
+          <Card>
+            <Statistic
+              title="Ожидают подтверждения"
+              value={stats.pending}
+              prefix={<ClockCircleOutlined />}
+              valueStyle={{ color: '#faad14' }}
+            />
+            <div className={styles.linkContainer}>
+              <Link to="/bookings?status=PENDING">Посмотреть →</Link>
+            </div>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={8}>
+          <Card>
+            <Statistic
+              title="Подтвержденные"
+              value={stats.confirmed}
+              prefix={<CheckCircleOutlined />}
+              valueStyle={{ color: '#52c41a' }}
+            />
+            <div className={styles.linkContainer}>
+              <Link to="/bookings?status=CONFIRMED">Посмотреть →</Link>
+            </div>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={8}>
+          <Card>
+            <Statistic
+              title="Записи на сегодня"
+              value={stats.today}
+              prefix={<CalendarOutlined />}
+              valueStyle={{ color: '#1890ff' }}
+            />
+            <div className={styles.linkContainer}>
+              <Link to="/bookings">Посмотреть →</Link>
+            </div>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 }
 
 export default DashboardPage;
-

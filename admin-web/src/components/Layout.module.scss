@@ -1,0 +1,81 @@
+.layout {
+  min-height: 100vh;
+}
+
+.sider {
+  overflow: auto;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+.logoContainer {
+  height: 64px;
+  margin: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  transition: all 0.2s;
+
+  &.collapsed {
+    font-size: 16px;
+  }
+
+  &:not(.collapsed) {
+    font-size: 20px;
+  }
+}
+
+.header {
+  padding: 0 16px;
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.menuButton {
+  font-size: 16px;
+  width: 64px;
+  height: 64px;
+}
+
+.userDropdown {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.content {
+  background: #fff;
+  min-height: 280px;
+
+  &.mobile {
+    margin: 8px;
+    padding: 16px;
+  }
+
+  &:not(.mobile) {
+    margin: 16px;
+    padding: 24px;
+  }
+}
+
+.userMenuContainer {
+  padding: 4px 0;
+}
+
+.userMenuEmail {
+  font-size: 12px;
+}
+

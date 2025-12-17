@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Card, List, Typography, Spin, Empty, Tag } from 'antd';
+import { ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import apiService from '../services/apiService';
-import './SlotsPage.scss';
+import styles from './SlotsPage.module.scss';
+
+const { Title, Text } = Typography;
 
 function SlotsPage() {
-  const [dateFrom] = useState(new Date().toISOString().split('T')[0]);
-  const [dateTo] = useState(
-    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  );
+  const { dateFrom, dateTo } = useMemo(() => ({
+    dateFrom: new Date().toISOString().split('T')[0],
+    dateTo: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  }), []);
 
   const { data: slots, isLoading } = useQuery({
     queryKey: ['slots', dateFrom, dateTo],
@@ -15,32 +19,43 @@ function SlotsPage() {
   });
 
   return (
-    <div className="slots-page">
-      <h1>Управление слотами</h1>
+    <div>
+      <Title level={2}>Управление слотами</Title>
       {isLoading ? (
-        <div>Загрузка...</div>
-      ) : (
-        <div className="slots-page__list">
-          {slots && slots.length > 0 ? (
-            slots.map((slot: any) => (
-              <div key={slot.id} className="slots-page__item">
-                <div>
-                  <strong>{new Date(slot.date).toLocaleString('ru-RU')}</strong>
+        <Spin size="large" className={styles.spin} />
+      ) : slots && slots.length > 0 ? (
+        <List
+          grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4 }}
+          dataSource={slots}
+          renderItem={(slot: any) => (
+            <List.Item>
+              <Card>
+                <div className={styles.infoRow}>
+                  <ClockCircleOutlined /> <Text strong>
+                    {new Date(slot.date).toLocaleString('ru-RU')}
+                  </Text>
+                </div>
+                <div className={styles.infoRow}>
+                  {slot.isAvailable ? (
+                    <Tag icon={<CheckCircleOutlined />} color="success">Доступен</Tag>
+                  ) : (
+                    <Tag icon={<CloseCircleOutlined />} color="error">Недоступен</Tag>
+                  )}
                 </div>
                 <div>
-                  {slot.isAvailable ? '✅ Доступен' : '❌ Недоступен'}
+                  <Text type="secondary">
+                    Записей: {slot.bookings?.length || 0} / {slot.maxBookings}
+                  </Text>
                 </div>
-                <div>Записей: {slot.bookings?.length || 0} / {slot.maxBookings}</div>
-              </div>
-            ))
-          ) : (
-            <div>Слотов не найдено</div>
+              </Card>
+            </List.Item>
           )}
-        </div>
+        />
+      ) : (
+        <Empty description="Слотов не найдено" className={styles.empty} />
       )}
     </div>
   );
 }
 
 export default SlotsPage;
-

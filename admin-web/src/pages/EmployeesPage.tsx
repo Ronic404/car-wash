@@ -1,13 +1,15 @@
-import './EmployeesPage.scss';
+import { Typography, Empty } from 'antd';
+import styles from './EmployeesPage.module.scss';
+
+const { Title } = Typography;
 
 function EmployeesPage() {
   return (
-    <div className="employees-page">
-      <h1>Управление сотрудниками</h1>
-      <p>Функционал в разработке</p>
+    <div>
+      <Title level={2}>Управление сотрудниками</Title>
+      <Empty description="Функционал в разработке" className={styles.empty} />
     </div>
   );
 }
 
 export default EmployeesPage;
-

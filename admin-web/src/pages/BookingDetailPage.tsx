@@ -1,13 +1,33 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Card,
+  Descriptions,
+  Button,
+  Space,
+  Tag,
+  Typography,
+  Spin,
+  message,
+  Breadcrumb,
+} from 'antd';
+import {
+  ArrowLeftOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  CheckOutlined,
+} from '@ant-design/icons';
 import apiService from '../services/apiService';
-import logger from '../utils/logger';
-import './BookingDetailPage.scss';
+import { useScreenSize } from '../hooks/useBreakpoint';
+import styles from './BookingDetailPage.module.scss';
+
+const { Title } = Typography;
 
 function BookingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { isMobile } = useScreenSize();
 
   const { data: booking, isLoading } = useQuery({
     queryKey: ['booking', id],
@@ -20,6 +40,10 @@ function BookingDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['booking', id] });
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      message.success('Запись подтверждена');
+    },
+    onError: (error: any) => {
+      message.error(error.response?.data?.error || 'Ошибка подтверждения');
     },
   });
 
@@ -28,6 +52,10 @@ function BookingDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['booking', id] });
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      message.success('Запись отменена');
+    },
+    onError: (error: any) => {
+      message.error(error.response?.data?.error || 'Ошибка отмены');
     },
   });
 
@@ -36,112 +64,130 @@ function BookingDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['booking', id] });
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      message.success('Запись завершена');
+    },
+    onError: (error: any) => {
+      message.error(error.response?.data?.error || 'Ошибка завершения');
     },
   });
 
   if (isLoading) {
-    return <div className="booking-detail-page">Загрузка...</div>;
+    return <Spin size="large" className={styles.spin} />;
   }
 
   if (!booking) {
-    return <div className="booking-detail-page">Запись не найдена</div>;
+    return <div>Запись не найдена</div>;
   }
 
   const slotDate = new Date(booking.slot.date).toLocaleString('ru-RU');
+  const statusConfig: { [key: string]: { color: string; text: string } } = {
+    PENDING: { color: 'warning', text: 'Ожидает подтверждения' },
+    CONFIRMED: { color: 'success', text: 'Подтверждена' },
+    CANCELLED: { color: 'error', text: 'Отменена' },
+    COMPLETED: { color: 'default', text: 'Завершена' },
+  };
+  const status = statusConfig[booking.status] || { color: 'default', text: booking.status };
 
   return (
-    <div className="booking-detail-page">
-      <button onClick={() => navigate('/bookings')} className="booking-detail-page__back">
-        ← Назад к записям
-      </button>
+    <div>
+      <Breadcrumb
+        items={[
+          { title: <a onClick={() => navigate('/bookings')}>Записи</a> },
+          { title: 'Детали записи' },
+        ]}
+        className={styles.breadcrumb}
+      />
 
-      <div className="booking-detail-page__card">
-        <div className="booking-detail-page__header">
-          <h1>Детали записи</h1>
-          <span className={`booking-detail-page__status booking-detail-page__status--${booking.status.toLowerCase()}`}>
-            {booking.status === 'PENDING' && 'Ожидает подтверждения'}
-            {booking.status === 'CONFIRMED' && 'Подтверждена'}
-            {booking.status === 'CANCELLED' && 'Отменена'}
-            {booking.status === 'COMPLETED' && 'Завершена'}
-          </span>
-        </div>
-
-        <div className="booking-detail-page__info">
-          <div className="booking-detail-page__section">
-            <h2>Дата и время</h2>
-            <p>{slotDate}</p>
-          </div>
-
-          <div className="booking-detail-page__section">
-            <h2>Автомобиль</h2>
-            <p>
-              <strong>{booking.car.brand} {booking.car.model}</strong>
-              {booking.car.year && ` (${booking.car.year} г.)`}
-              {booking.car.color && ` • ${booking.car.color}`}
-              {booking.car.licensePlate && ` • ${booking.car.licensePlate}`}
-            </p>
-          </div>
-
-          <div className="booking-detail-page__section">
-            <h2>Услуга</h2>
-            <p>
-              <strong>{booking.service.name}</strong>
-              {booking.service.description && ` • ${booking.service.description}`}
-            </p>
-            <p>Цена: {booking.service.price}₽</p>
-            <p>Длительность: {booking.service.duration} мин.</p>
-          </div>
-
-          <div className="booking-detail-page__section">
-            <h2>Клиент</h2>
-            <p>
-              {booking.user.firstName} {booking.user.lastName}
-              {booking.user.phone && ` • ${booking.user.phone}`}
-              {booking.user.username && ` • @${booking.user.username}`}
-            </p>
-          </div>
-
+      <Card
+        title={
+          <Space>
+            <Title level={3} className={styles.title}>Детали записи</Title>
+            <Tag color={status.color}>{status.text}</Tag>
+          </Space>
+        }
+        extra={
+          <Button 
+            icon={<ArrowLeftOutlined />} 
+            onClick={() => navigate('/bookings')}
+            size={isMobile ? 'middle' : 'large'}
+          >
+            {isMobile ? 'Назад' : 'Назад к записям'}
+          </Button>
+        }
+      >
+        <Descriptions 
+          column={1}
+          bordered
+          size={isMobile ? 'small' : 'default'}
+        >
+          <Descriptions.Item label="Дата и время">
+            {slotDate}
+          </Descriptions.Item>
+          <Descriptions.Item label="Автомобиль">
+            <strong>{booking.car.brand} {booking.car.model}</strong>
+            {booking.car.year && ` (${booking.car.year} г.)`}
+            {booking.car.color && ` • ${booking.car.color}`}
+            {booking.car.licensePlate && ` • ${booking.car.licensePlate}`}
+          </Descriptions.Item>
+          <Descriptions.Item label="Услуга">
+            <strong>{booking.service.name}</strong>
+            {booking.service.description && ` • ${booking.service.description}`}
+            <br />
+            Цена: {booking.service.price}₽ | Длительность: {booking.service.duration} мин.
+          </Descriptions.Item>
+          <Descriptions.Item label="Клиент">
+            {booking.user.firstName} {booking.user.lastName}
+            {booking.user.phone && ` • ${booking.user.phone}`}
+            {booking.user.username && ` • @${booking.user.username}`}
+          </Descriptions.Item>
           {booking.notes && (
-            <div className="booking-detail-page__section">
-              <h2>Заметки</h2>
-              <p>{booking.notes}</p>
-            </div>
+            <Descriptions.Item label="Заметки">
+              {booking.notes}
+            </Descriptions.Item>
           )}
-        </div>
+        </Descriptions>
 
-        <div className="booking-detail-page__actions">
+        <div className={styles.actionsContainer}>
           {booking.status === 'PENDING' && (
-            <>
-              <button
+            <Space wrap direction={isMobile ? 'vertical' : 'horizontal'} className={styles.space}>
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
                 onClick={() => confirmMutation.mutate()}
-                disabled={confirmMutation.isPending}
-                className="booking-detail-page__btn booking-detail-page__btn--confirm"
+                loading={confirmMutation.isPending}
+                size="large"
+                block={isMobile}
               >
-                {confirmMutation.isPending ? 'Подтверждение...' : 'Подтвердить'}
-              </button>
-              <button
+                Подтвердить
+              </Button>
+              <Button
+                danger
+                icon={<CloseCircleOutlined />}
                 onClick={() => cancelMutation.mutate()}
-                disabled={cancelMutation.isPending}
-                className="booking-detail-page__btn booking-detail-page__btn--cancel"
+                loading={cancelMutation.isPending}
+                size="large"
+                block={isMobile}
               >
-                {cancelMutation.isPending ? 'Отмена...' : 'Отменить'}
-              </button>
-            </>
+                Отменить
+              </Button>
+            </Space>
           )}
           {booking.status === 'CONFIRMED' && (
-            <button
+            <Button
+              type="primary"
+              icon={<CheckOutlined />}
               onClick={() => completeMutation.mutate()}
-              disabled={completeMutation.isPending}
-              className="booking-detail-page__btn booking-detail-page__btn--complete"
+              loading={completeMutation.isPending}
+              size="large"
+              block={isMobile}
             >
-              {completeMutation.isPending ? 'Завершение...' : 'Завершить'}
-            </button>
+              Завершить
+            </Button>
           )}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
 
 export default BookingDetailPage;
-

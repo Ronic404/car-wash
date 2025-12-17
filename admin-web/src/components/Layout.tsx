@@ -1,69 +1,150 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Layout as AntLayout, Menu, Avatar, Dropdown, Typography, Button, Tooltip } from 'antd';
+import {
+  DashboardOutlined,
+  CalendarOutlined,
+  ClockCircleOutlined,
+  ShoppingOutlined,
+  TeamOutlined,
+  LogoutOutlined,
+  UserOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+} from '@ant-design/icons';
 import { useAuthStore } from '../store/authStore';
 import { useWebSocket } from '../hooks/useWebSocket';
-import './Layout.scss';
+import { useScreenSize } from '../hooks/useBreakpoint';
+import type { MenuProps } from 'antd';
+import styles from './Layout.module.scss';
+
+const { Header, Sider, Content } = AntLayout;
+const { Text } = Typography;
 
 function Layout() {
   const { admin, logout } = useAuthStore();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isMobile } = useScreenSize();
+  const [collapsed, setCollapsed] = useState(false);
+  const [isBreakpointBroken, setIsBreakpointBroken] = useState(false);
   
   // Подключаем WebSocket для real-time обновлений
   useWebSocket();
 
-  const isActive = (path: string) => location.pathname === path;
+  const menuItems: MenuProps['items'] = [
+    {
+      key: '/dashboard',
+      icon: <DashboardOutlined />,
+      label: <Link to="/dashboard">Дашборд</Link>,
+    },
+    {
+      key: '/bookings',
+      icon: <CalendarOutlined />,
+      label: <Link to="/bookings">Записи</Link>,
+    },
+    {
+      key: '/slots',
+      icon: <ClockCircleOutlined />,
+      label: <Link to="/slots">Слоты</Link>,
+    },
+    {
+      key: '/services',
+      icon: <ShoppingOutlined />,
+      label: <Link to="/services">Услуги</Link>,
+    },
+    {
+      key: '/employees',
+      icon: <TeamOutlined />,
+      label: <Link to="/employees">Сотрудники</Link>,
+    },
+  ];
+
+  const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'user',
+      label: (
+        <div className={styles.userMenuContainer}>
+          <Text strong>{admin?.firstName} {admin?.lastName}</Text>
+          <br />
+          <Text type="secondary" className={styles.userMenuEmail}>{admin?.email}</Text>
+        </div>
+      ),
+      disabled: true,
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: 'Выйти',
+      onClick: () => {
+        logout();
+        navigate('/login');
+      },
+    },
+  ];
+
+  const selectedKeys = [location.pathname];
+  if (location.pathname.startsWith('/bookings/')) {
+    selectedKeys[0] = '/bookings';
+  }
 
   return (
-    <div className="layout">
-      <nav className="layout__sidebar">
-        <div className="layout__sidebar-header">
-          <h1>🚗 Автомойка</h1>
-          <p className="layout__admin-name">
-            {admin?.firstName} {admin?.lastName}
-          </p>
+    <AntLayout className={styles.layout}>
+      <Sider
+        breakpoint="lg"
+        collapsedWidth={collapsed ? 0 : 80}
+        width={200}
+        collapsed={collapsed || isBreakpointBroken}
+        onBreakpoint={(broken) => {
+          setIsBreakpointBroken(broken);
+        }}
+        trigger={null}
+        className={styles.sider}
+      >
+        <div className={`${styles.logoContainer} ${(collapsed || isBreakpointBroken) ? styles.collapsed : ''}`}>
+          {(collapsed || isBreakpointBroken) ? '🚗' : '🚗 Автомойка'}
         </div>
-        <ul className="layout__nav">
-          <li>
-            <Link
-              to="/dashboard"
-              className={isActive('/dashboard') ? 'active' : ''}
-            >
-              📊 Дашборд
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/bookings"
-              className={isActive('/bookings') || location.pathname.startsWith('/bookings/') ? 'active' : ''}
-            >
-              📋 Записи
-            </Link>
-          </li>
-          <li>
-            <Link to="/slots" className={isActive('/slots') ? 'active' : ''}>
-              ⏰ Слоты
-            </Link>
-          </li>
-          <li>
-            <Link to="/services" className={isActive('/services') ? 'active' : ''}>
-              💼 Услуги
-            </Link>
-          </li>
-          <li>
-            <Link to="/employees" className={isActive('/employees') ? 'active' : ''}>
-              👥 Сотрудники
-            </Link>
-          </li>
-        </ul>
-        <button className="layout__logout" onClick={logout}>
-          Выйти
-        </button>
-      </nav>
-      <main className="layout__content">
-        <Outlet />
-      </main>
-    </div>
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={selectedKeys}
+          items={menuItems}
+        />
+      </Sider>
+      <AntLayout 
+        className={styles.mainLayout}
+        style={{ 
+          marginLeft: collapsed ? 0 : (isBreakpointBroken ? 80 : 200),
+          transition: 'margin-left 0.2s'
+        }}
+      >
+        <Header className={styles.header}>
+          <Tooltip title={collapsed ? 'Показать меню' : 'Скрыть меню'}>
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              className={styles.menuButton}
+            />
+          </Tooltip>
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+            <div className={styles.userDropdown}>
+              <Avatar icon={<UserOutlined />} />
+              {!isMobile && (
+                <Text>{admin?.firstName} {admin?.lastName}</Text>
+              )}
+            </div>
+          </Dropdown>
+        </Header>
+        <Content className={`${styles.content} ${isMobile ? styles.mobile : ''}`}>
+          <Outlet />
+        </Content>
+      </AntLayout>
+    </AntLayout>
   );
 }
 
 export default Layout;
-

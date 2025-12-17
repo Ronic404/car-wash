@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
+import { Card, Tag, Tabs, List, Typography, Spin, Empty } from 'antd';
+import {
+  CarOutlined,
+  UserOutlined,
+  PhoneOutlined,
+  CalendarOutlined,
+} from '@ant-design/icons';
 import apiService from '../services/apiService';
-import './BookingsPage.scss';
+import styles from './BookingsPage.module.scss';
+
+const { Text, Title } = Typography;
 
 function BookingsPage() {
   const [searchParams] = useSearchParams();
@@ -13,82 +22,96 @@ function BookingsPage() {
     queryFn: () => apiService.getBookings(statusFilter !== 'all' ? { status: statusFilter } : undefined),
   });
 
-  const getStatusBadge = (status: string) => {
-    const badges: { [key: string]: { text: string; class: string } } = {
-      PENDING: { text: 'Ожидает', class: 'pending' },
-      CONFIRMED: { text: 'Подтверждена', class: 'confirmed' },
-      CANCELLED: { text: 'Отменена', class: 'cancelled' },
-      COMPLETED: { text: 'Завершена', class: 'completed' },
+  const getStatusTag = (status: string) => {
+    const statusConfig: { [key: string]: { color: string; text: string } } = {
+      PENDING: { color: 'warning', text: 'Ожидает' },
+      CONFIRMED: { color: 'success', text: 'Подтверждена' },
+      CANCELLED: { color: 'error', text: 'Отменена' },
+      COMPLETED: { color: 'default', text: 'Завершена' },
     };
-    return badges[status] || { text: status, class: '' };
+    const config = statusConfig[status] || { color: 'default', text: status };
+    return <Tag color={config.color}>{config.text}</Tag>;
   };
 
+  const tabItems = [
+    {
+      key: 'all',
+      label: 'Все',
+    },
+    {
+      key: 'PENDING',
+      label: 'Ожидают',
+    },
+    {
+      key: 'CONFIRMED',
+      label: 'Подтвержденные',
+    },
+  ];
+
   return (
-    <div className="bookings-page">
-      <div className="bookings-page__header">
-        <h1>Записи</h1>
-        <div className="bookings-page__filters">
-          <button
-            className={statusFilter === 'all' ? 'active' : ''}
-            onClick={() => setStatusFilter('all')}
-          >
-            Все
-          </button>
-          <button
-            className={statusFilter === 'PENDING' ? 'active' : ''}
-            onClick={() => setStatusFilter('PENDING')}
-          >
-            Ожидают
-          </button>
-          <button
-            className={statusFilter === 'CONFIRMED' ? 'active' : ''}
-            onClick={() => setStatusFilter('CONFIRMED')}
-          >
-            Подтвержденные
-          </button>
-        </div>
-      </div>
+    <div>
+      <Title level={2}>Записи</Title>
+
+      <Tabs
+        activeKey={statusFilter}
+        items={tabItems}
+        onChange={(key) => setStatusFilter(key)}
+        className={styles.tabs}
+      />
 
       {isLoading ? (
-        <div className="bookings-page__loading">Загрузка...</div>
+        <Spin size="large" className={styles.spin} />
       ) : bookings && bookings.length > 0 ? (
-        <div className="bookings-page__list">
-          {bookings.map((booking: any) => {
-            const status = getStatusBadge(booking.status);
+        <List
+          grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 2, xl: 3, xxl: 3 }}
+          dataSource={bookings}
+          renderItem={(booking: any) => {
             const slotDate = new Date(booking.slot.date).toLocaleString('ru-RU');
             return (
-              <Link
-                key={booking.id}
-                to={`/bookings/${booking.id}`}
-                className="bookings-page__item"
-              >
-                <div className="bookings-page__item-header">
-                  <span className={`bookings-page__status bookings-page__status--${status.class}`}>
-                    {status.text}
-                  </span>
-                  <span className="bookings-page__date">{slotDate}</span>
-                </div>
-                <div className="bookings-page__item-body">
-                  <div>
-                    <strong>{booking.car.brand} {booking.car.model}</strong>
-                    {booking.car.licensePlate && ` (${booking.car.licensePlate})`}
-                  </div>
-                  <div>{booking.service.name} - {booking.service.price}₽</div>
-                  <div className="bookings-page__user">
-                    {booking.user.firstName} {booking.user.lastName}
-                    {booking.user.phone && ` • ${booking.user.phone}`}
-                  </div>
-                </div>
-              </Link>
+              <List.Item>
+                <Link to={`/bookings/${booking.id}`} className={styles.link}>
+                  <Card
+                    hoverable
+                    className={styles.card}
+                    actions={[
+                      <Text key="view" type="secondary">Подробнее →</Text>,
+                    ]}
+                  >
+                    <div className={styles.statusContainer}>
+                      {getStatusTag(booking.status)}
+                      <Text type="secondary" className={styles.dateText}>
+                        <CalendarOutlined /> {slotDate}
+                      </Text>
+                    </div>
+                    <div className={styles.infoRow}>
+                      <CarOutlined /> <Text strong>{booking.car.brand} {booking.car.model}</Text>
+                      {booking.car.licensePlate && (
+                        <Text type="secondary"> ({booking.car.licensePlate})</Text>
+                      )}
+                    </div>
+                    <div className={styles.infoRow}>
+                      <Text>{booking.service.name}</Text> - <Text strong>{booking.service.price}₽</Text>
+                    </div>
+                    <div>
+                      <UserOutlined /> <Text>{booking.user.firstName} {booking.user.lastName}</Text>
+                      {booking.user.phone && (
+                        <>
+                          <br />
+                          <PhoneOutlined /> <Text type="secondary">{booking.user.phone}</Text>
+                        </>
+                      )}
+                    </div>
+                  </Card>
+                </Link>
+              </List.Item>
             );
-          })}
-        </div>
+          }}
+        />
       ) : (
-        <div className="bookings-page__empty">Записей не найдено</div>
+        <Empty description="Записей не найдено" className={styles.empty} />
       )}
     </div>
   );
 }
 
 export default BookingsPage;
-

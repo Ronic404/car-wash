@@ -8,7 +8,6 @@ import SlotsPage from './pages/SlotsPage';
 import ServicesPage from './pages/ServicesPage';
 import EmployeesPage from './pages/EmployeesPage';
 import Layout from './components/Layout';
-import './styles/App.scss';
 
 /**
  * Компонент для защищенных маршрутов

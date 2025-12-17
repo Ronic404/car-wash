@@ -1,0 +1,39 @@
+.tabs {
+  margin-top: 24px;
+}
+
+.spin {
+  display: block;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.link {
+  text-decoration: none;
+}
+
+.card {
+  height: 100%;
+}
+
+.statusContainer {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dateText {
+  font-size: 12px;
+}
+
+.infoRow {
+  margin-bottom: 8px;
+}
+
+.empty {
+  margin-top: 50px;
+}
+
