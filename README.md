@@ -51,7 +51,7 @@ car-wash/
 ### Требования
 
 - Node.js >= 18.0.0
-- PostgreSQL >= 14
+- Docker и Docker Compose (для базы данных)
 - npm или yarn
 
 ### Установка
@@ -63,15 +63,38 @@ car-wash/
 npm install
 ```
 
-3. Настройте переменные окружения:
-
-Скопируйте `.env.example` в корень проекта и заполните необходимые значения:
+3. Запустите базу данных через Docker Compose:
 
 ```bash
-cp .env.example .env
+docker compose up -d
 ```
 
-4. Настройте базу данных:
+Это создаст и запустит PostgreSQL контейнер на порту 5432.
+
+4. Настройте переменные окружения:
+
+Скопируйте `.env.example` файлы в соответствующие директории и заполните необходимые значения:
+
+```bash
+# Корневой .env (опционально)
+cp .env.example .env
+
+# API .env
+cd api && cp .env.example .env
+
+# Telegram bot .env
+cd ../telegram-bot && cp .env.example .env
+
+# Admin web .env
+cd ../admin-web && cp .env.example .env
+```
+
+**Важно:** В `api/.env` используйте следующую строку подключения:
+```
+DATABASE_URL="postgresql://carwash:carwash123@localhost:5432/car_wash?schema=public"
+```
+
+5. Настройте базу данных:
 
 ```bash
 cd api
@@ -97,6 +120,40 @@ cd telegram-bot && npm run dev
 # Веб-приложение
 cd admin-web && npm run dev
 ```
+
+## Docker Compose
+
+Проект включает `docker-compose.yml` для запуска PostgreSQL базы данных локально.
+
+### Запуск базы данных
+
+```bash
+docker-compose up -d
+```
+
+### Остановка базы данных
+
+```bash
+docker compose down
+```
+
+### Просмотр логов
+
+```bash
+docker compose logs -f postgres
+```
+
+### Удаление данных базы (сброс)
+
+```bash
+docker compose down -v
+```
+
+**Параметры по умолчанию:**
+- Пользователь: `carwash`
+- Пароль: `carwash123`
+- База данных: `car_wash`
+- Порт: `5432`
 
 ## Переменные окружения
 
@@ -206,7 +263,25 @@ cd admin-web && npm run preview
 
 ### Проблемы с подключением к базе данных
 
-Убедитесь, что PostgreSQL запущен и `DATABASE_URL` указан правильно.
+1. Убедитесь, что Docker контейнер запущен:
+```bash
+docker compose ps
+```
+
+2. Проверьте, что `DATABASE_URL` в `api/.env` указан правильно:
+```
+DATABASE_URL="postgresql://carwash:carwash123@localhost:5432/car_wash?schema=public"
+```
+
+3. Если контейнер не запущен, запустите его:
+```bash
+docker compose up -d
+```
+
+4. Проверьте логи контейнера:
+```bash
+docker compose logs postgres
+```
 
 ### Проблемы с Telegram ботом
 
