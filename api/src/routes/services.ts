@@ -6,9 +6,14 @@ import { validate } from '../middleware/validation';
 const router = Router();
 
 /**
- * @route   GET /api/services/active
- * @desc    Получение всех активных услуг (для клиентов)
- * @access  Public
+ * @swagger
+ * /api/services/active:
+ *   get:
+ *     summary: Получение всех активных услуг (для клиентов)
+ *     tags: [Services]
+ *     responses:
+ *       200:
+ *         description: Список активных услуг
  */
 router.get('/active', serviceController.getActive);
 

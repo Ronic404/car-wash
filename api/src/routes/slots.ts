@@ -6,9 +6,27 @@ import { validate } from '../middleware/validation';
 const router = Router();
 
 /**
- * @route   GET /api/slots/available
- * @desc    Получение доступных слотов (для клиентов)
- * @access  Public
+ * @swagger
+ * /api/slots/available:
+ *   get:
+ *     summary: Получение доступных слотов (для клиентов)
+ *     tags: [Slots]
+ *     parameters:
+ *       - in: query
+ *         name: dateFrom
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *       - in: query
+ *         name: dateTo
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *     responses:
+ *       200:
+ *         description: Список доступных слотов
  */
 router.get('/available', validate(getSlotsSchema), slotController.getAvailable);
 

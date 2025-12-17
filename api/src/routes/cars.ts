@@ -5,9 +5,38 @@ import { validate } from '../middleware/validation';
 const router = Router();
 
 /**
- * @route   POST /api/cars
- * @desc    Создание нового автомобиля
- * @access  Public (для Telegram бота)
+ * @swagger
+ * /api/cars:
+ *   post:
+ *     summary: Создание нового автомобиля
+ *     tags: [Cars]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - brand
+ *               - model
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *               brand:
+ *                 type: string
+ *               model:
+ *                 type: string
+ *               year:
+ *                 type: integer
+ *               color:
+ *                 type: string
+ *               licensePlate:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Автомобиль успешно создан
  */
 router.post('/', validate(createCarSchema), carController.create);
 

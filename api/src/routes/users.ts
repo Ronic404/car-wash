@@ -4,9 +4,31 @@ import userService from '../services/userService';
 const router = Router();
 
 /**
- * @route   POST /api/users/telegram
- * @desc    Получение или создание пользователя по Telegram ID
- * @access  Public (для Telegram бота)
+ * @swagger
+ * /api/users/telegram:
+ *   post:
+ *     summary: Получение или создание пользователя по Telegram ID
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - telegramId
+ *             properties:
+ *               telegramId:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               username:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Пользователь найден или создан
  */
 router.post('/telegram', async (req, res) => {
   try {
