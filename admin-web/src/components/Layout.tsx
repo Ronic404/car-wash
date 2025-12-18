@@ -13,7 +13,7 @@ import {
   MenuUnfoldOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '../store/authStore';
-import { useWebSocket } from '../hooks/useWebSocket';
+import { useSSE } from '../hooks/useSSE';
 import { useScreenSize } from '../hooks/useBreakpoint';
 import type { MenuProps } from 'antd';
 import styles from './Layout.module.scss';
@@ -29,8 +29,8 @@ function Layout() {
   const [collapsed, setCollapsed] = useState(false);
   const [isBreakpointBroken, setIsBreakpointBroken] = useState(false);
   
-  // Подключаем WebSocket для real-time обновлений
-  useWebSocket();
+  // Подключаем SSE для real-time обновлений
+  useSSE();
 
   const menuItems: MenuProps['items'] = [
     {

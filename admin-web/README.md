@@ -12,7 +12,7 @@
 - Zustand (state management)
 - Axios
 - SCSS модули
-- WebSocket (real-time обновления)
+- Server-Sent Events (SSE) (real-time обновления)
 
 ## Установка
 
@@ -22,12 +22,13 @@ npm install
 
 ## Настройка
 
-1. Создайте `.env` файл:
+1. Создайте `.env` файл (опционально):
 
 ```env
 VITE_API_URL=http://localhost:3000
-VITE_WS_URL=ws://localhost:3000/ws
 ```
+
+По умолчанию используется `http://localhost:3000`.
 
 ## Запуск
 
@@ -58,11 +59,11 @@ src/
 │   └── EmployeesPage.tsx
 ├── services/      # Сервисы
 │   ├── apiService.ts      # HTTP запросы к API
-│   └── websocketService.ts # WebSocket клиент
+│   └── sseService.ts      # SSE клиент
 ├── store/         # Zustand stores
 │   └── authStore.ts
 ├── hooks/         # React hooks
-│   └── useWebSocket.ts
+│   └── useSSE.ts  # Хук для работы с SSE
 ├── styles/        # SCSS модули
 └── main.tsx       # Точка входа
 ```
@@ -105,7 +106,7 @@ src/
 
 ## Real-time обновления
 
-Приложение использует WebSocket для получения real-time уведомлений о:
+Приложение использует Server-Sent Events (SSE) для получения real-time уведомлений о:
 - Новых записях
 - Обновлениях записей
 

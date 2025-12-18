@@ -22,8 +22,7 @@ car-wash/
 │   │   ├── controllers/ # Контроллеры
 │   │   ├── middleware/  # Middleware (auth, validation, error handling)
 │   │   ├── routes/      # Маршруты
-│   │   ├── services/    # Бизнес-логика
-│   │   ├── websocket/   # WebSocket сервер
+│   │   ├── services/    # Бизнес-логика (включая SSE сервис)
 │   │   └── index.ts     # Точка входа
 │   ├── prisma/          # Prisma схема
 │   └── package.json
@@ -38,7 +37,7 @@ car-wash/
 │   ├── src/
 │   │   ├── components/  # React компоненты
 │   │   ├── pages/       # Страницы
-│   │   ├── services/    # Сервисы (API, WebSocket)
+│   │   ├── services/    # Сервисы (API, SSE)
 │   │   ├── store/        # Zustand store
 │   │   ├── styles/      # SCSS модули
 │   │   └── main.tsx     # Точка входа
@@ -73,20 +72,20 @@ docker compose up -d
 
 4. Настройте переменные окружения:
 
-Скопируйте `.env.example` файлы в соответствующие директории и заполните необходимые значения:
+Создайте `.env` файлы в соответствующих директориях каждого сервиса:
 
 ```bash
-# Корневой .env (опционально)
-cp .env.example .env
-
 # API .env
-cd api && cp .env.example .env
+cd api
+# Создайте .env файл с необходимыми переменными (см. api/README.md)
 
 # Telegram bot .env
-cd ../telegram-bot && cp .env.example .env
+cd ../telegram-bot
+# Создайте .env файл с TELEGRAM_BOT_TOKEN и API_URL
 
 # Admin web .env
-cd ../admin-web && cp .env.example .env
+cd ../admin-web
+# Создайте .env файл с VITE_API_URL (опционально, по умолчанию http://localhost:3000)
 ```
 
 **Важно:** В `api/.env` используйте следующую строку подключения:
@@ -167,7 +166,6 @@ DATABASE_URL="postgresql://user:password@localhost:5432/car_wash?schema=public"
 API_PORT=3000
 API_URL=http://localhost:3000
 JWT_SECRET=your-secret-key-here
-JWT_EXPIRES_IN=7d
 
 # Telegram Bot
 TELEGRAM_BOT_TOKEN=your-telegram-bot-token
@@ -205,7 +203,7 @@ http://localhost:3000/api/docs
 - Управление временными слотами
 - Управление услугами и ценами
 - Управление сотрудниками (в разработке)
-- Real-time уведомления о новых записях через WebSocket
+- Real-time уведомления о новых записях через Server-Sent Events (SSE)
 
 ## Логирование
 
@@ -287,9 +285,9 @@ docker compose logs postgres
 
 Проверьте, что `TELEGRAM_BOT_TOKEN` установлен и токен действителен.
 
-### Проблемы с WebSocket
+### Проблемы с SSE
 
-Убедитесь, что порт WebSocket не заблокирован файрволом.
+SSE работает через обычный HTTP, поэтому проблемы с файрволом маловероятны. Убедитесь, что API сервер доступен и токен аутентификации валиден.
 
 ## Лицензия
 

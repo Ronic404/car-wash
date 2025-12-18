@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import bookingService from '../services/bookingService';
-import wsService from '../websocket/server';
+import sseService from '../services/sseService';
 import { z } from 'zod';
 
 /**
@@ -35,8 +35,8 @@ class BookingController {
   async create(req: Request, res: Response): Promise<void> {
     try {
       const booking = await bookingService.createBooking(req.body);
-      // Отправляем уведомление через WebSocket
-      wsService.notifyNewBooking(booking);
+      // Отправляем уведомление через SSE
+      sseService.notifyNewBooking(booking);
       res.status(201).json(booking);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
@@ -91,8 +91,8 @@ class BookingController {
   async confirm(req: Request, res: Response): Promise<void> {
     try {
       const booking = await bookingService.confirmBooking(req.params.id);
-      // Отправляем уведомление через WebSocket
-      wsService.notifyBookingUpdate(booking);
+      // Отправляем уведомление через SSE
+      sseService.notifyBookingUpdate(booking);
       res.json(booking);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
@@ -105,6 +105,8 @@ class BookingController {
   async cancel(req: Request, res: Response): Promise<void> {
     try {
       const booking = await bookingService.cancelBooking(req.params.id);
+      // Отправляем уведомление через SSE
+      sseService.notifyBookingUpdate(booking);
       res.json(booking);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
@@ -117,6 +119,8 @@ class BookingController {
   async complete(req: Request, res: Response): Promise<void> {
     try {
       const booking = await bookingService.completeBooking(req.params.id);
+      // Отправляем уведомление через SSE
+      sseService.notifyBookingUpdate(booking);
       res.json(booking);
     } catch (error: any) {
       res.status(400).json({ error: error.message });

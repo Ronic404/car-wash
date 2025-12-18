@@ -9,7 +9,6 @@ import logger from './config/logger';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import routes from './routes';
 import { swaggerSpec } from './config/swagger';
-import wsService from './websocket/server';
 
 // Загружаем переменные окружения
 dotenv.config();
@@ -17,9 +16,6 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 const PORT = process.env.API_PORT || 3000;
-
-// Инициализация WebSocket
-wsService.initialize(server);
 
 // Middleware для безопасности
 app.use(helmet());
@@ -61,7 +57,7 @@ app.use(errorHandler);
 server.listen(PORT, () => {
   logger.info(`API сервер запущен на порту ${PORT}`);
   logger.info(`Swagger документация доступна по адресу http://localhost:${PORT}/api/docs`);
-  logger.info(`WebSocket сервер доступен по адресу ws://localhost:${PORT}/ws`);
+  logger.info(`SSE endpoint доступен по адресу http://localhost:${PORT}/api/sse/events`);
 });
 
 // Graceful shutdown

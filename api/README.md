@@ -10,7 +10,7 @@ REST API сервис для приложения автомойки на Expres
 - Prisma ORM
 - Winston (логирование)
 - Swagger (документация)
-- WebSocket (real-time уведомления)
+- Server-Sent Events (SSE) (real-time уведомления)
 
 ## Установка
 
@@ -27,7 +27,6 @@ DATABASE_URL="postgresql://user:password@localhost:5432/car_wash?schema=public"
 API_PORT=3000
 API_URL=http://localhost:3000
 JWT_SECRET=your-secret-key-here
-JWT_EXPIRES_IN=7d
 LOG_LEVEL=info
 LOG_FILE_PATH=./logs
 ```
@@ -97,9 +96,11 @@ npm start
 - `POST /api/users/telegram` - Получение/создание пользователя по Telegram ID
 - `GET /api/users/:id` - Получение пользователя по ID
 
-## WebSocket
+## Server-Sent Events (SSE)
 
-WebSocket сервер доступен по адресу `ws://localhost:3000/ws`.
+SSE endpoint доступен по адресу `http://localhost:3000/api/sse/events`.
+
+Для подключения требуется JWT токен (передается в query параметре `token`).
 
 События:
 - `new_booking` - новая запись создана
@@ -124,8 +125,7 @@ src/
 ├── controllers/    # Контроллеры для обработки запросов
 ├── middleware/     # Middleware (auth, validation, error handling)
 ├── routes/         # Маршруты API
-├── services/       # Бизнес-логика
-├── websocket/      # WebSocket сервер
+├── services/       # Бизнес-логика (включая SSE сервис)
 └── index.ts        # Точка входа
 ```
 

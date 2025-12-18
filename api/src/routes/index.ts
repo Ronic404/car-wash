@@ -5,6 +5,7 @@ import carsRouter from './cars';
 import servicesRouter from './services';
 import adminRouter from './admin';
 import usersRouter from './users';
+import sseRouter from './sse';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use('/cars', carsRouter);
 router.use('/services', servicesRouter);
 router.use('/admin', adminRouter);
 router.use('/users', usersRouter);
+router.use('/sse', sseRouter);
 
 export default router;
 

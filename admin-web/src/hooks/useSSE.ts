@@ -1,33 +1,33 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
-import wsService from '../services/websocketService';
+import sseService from '../services/sseService';
 import logger from '../utils/logger';
 
 /**
- * Хук для работы с WebSocket
+ * Хук для работы с Server-Sent Events
  */
-export function useWebSocket() {
+export function useSSE() {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
-    // Подключаемся к WebSocket только если пользователь авторизован
+    // Подключаемся к SSE только если пользователь авторизован
     if (!isAuthenticated) {
       return;
     }
 
-    wsService.connect();
+    sseService.connect();
 
     // Подписываемся на новые записи
-    const unsubscribeNewBooking = wsService.on('new_booking', (booking) => {
+    const unsubscribeNewBooking = sseService.on('new_booking', (booking) => {
       logger.info('Получено уведомление о новой записи', { booking });
       // Обновляем кеш записей
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
     });
 
     // Подписываемся на обновления записей
-    const unsubscribeBookingUpdate = wsService.on('booking_update', (booking) => {
+    const unsubscribeBookingUpdate = sseService.on('booking_update', (booking) => {
       logger.info('Получено уведомление об обновлении записи', { booking });
       // Обновляем кеш записей и конкретной записи
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
@@ -38,7 +38,7 @@ export function useWebSocket() {
     return () => {
       unsubscribeNewBooking();
       unsubscribeBookingUpdate();
-      wsService.disconnect();
+      sseService.disconnect();
     };
   }, [queryClient, isAuthenticated]);
 }
