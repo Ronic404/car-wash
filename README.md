@@ -62,7 +62,17 @@ car-wash/
 npm install
 ```
 
-3. Запустите базу данных через Docker Compose:
+3. Настройте переменные окружения для Docker Compose:
+
+```bash
+# Скопируйте пример файла
+cp .env.example .env
+
+# Отредактируйте .env и замените your-strong-password-here на реальный пароль
+# (получите пароль из Bitwarden)
+```
+
+4. Запустите базу данных через Docker Compose:
 
 ```bash
 docker compose up -d
@@ -70,7 +80,7 @@ docker compose up -d
 
 Это создаст и запустит PostgreSQL контейнер на порту 5432.
 
-4. Настройте переменные окружения:
+5. Настройте переменные окружения для сервисов:
 
 Создайте `.env` файлы в соответствующих директориях каждого сервиса:
 
@@ -93,7 +103,7 @@ cd ../admin-web
 DATABASE_URL="postgresql://carwash:carwash123@localhost:5432/car_wash?schema=public"
 ```
 
-5. Настройте базу данных:
+6. Настройте базу данных:
 
 ```bash
 cd api
@@ -101,7 +111,7 @@ npm run prisma:generate
 npm run prisma:migrate
 ```
 
-5. Запустите все сервисы:
+7. Запустите все сервисы:
 
 ```bash
 npm run dev
@@ -124,10 +134,24 @@ cd admin-web && npm run dev
 
 Проект включает `docker-compose.yml` для запуска PostgreSQL базы данных локально.
 
+### Настройка переменных окружения
+
+Перед первым запуском настройте переменные окружения:
+
+```bash
+# Скопируйте пример файла
+cp .env.example .env
+
+# Отредактируйте .env и замените значения на реальные
+# POSTGRES_PASSWORD - получите из Bitwarden
+```
+
+Файл `.env.example` содержит примеры переменных с дефолтными значениями для разработки. Для продакшена обязательно измените пароли на сильные.
+
 ### Запуск базы данных
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Остановка базы данных
@@ -148,32 +172,60 @@ docker compose logs -f postgres
 docker compose down -v
 ```
 
-**Параметры по умолчанию:**
+**Параметры по умолчанию (из .env.example):**
 - Пользователь: `carwash`
-- Пароль: `carwash123`
+- Пароль: `your-strong-password-here` (нужно заменить на реальный)
 - База данных: `car_wash`
 - Порт: `5432`
 
+**Важно:** Для продакшена обязательно измените пароль в `.env` файле на сильный пароль из Bitwarden.
+
 ## Переменные окружения
 
-Создайте `.env` файл в корне проекта со следующими переменными:
+### Docker Compose (корневой `.env`)
 
+Для Docker Compose используйте файл `.env` в корне проекта:
+
+```bash
+# Скопируйте пример
+cp .env.example .env
+
+# Отредактируйте .env и замените значения на реальные
+```
+
+Файл `.env.example` содержит примеры переменных для Docker Compose:
+- `POSTGRES_USER` - пользователь PostgreSQL
+- `POSTGRES_PASSWORD` - пароль PostgreSQL (получите из Bitwarden)
+- `POSTGRES_DB` - имя базы данных
+
+### Сервисы
+
+Каждый сервис использует свой `.env` файл в своей директории:
+
+**API (`api/.env`):**
 ```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/car_wash?schema=public"
-
-# API
+DATABASE_URL="postgresql://carwash:YOUR_PASSWORD@localhost:5432/car_wash?schema=public"
 API_PORT=3000
 API_URL=http://localhost:3000
 JWT_SECRET=your-secret-key-here
-
-# Telegram Bot
-TELEGRAM_BOT_TOKEN=your-telegram-bot-token
-
-# Logging
 LOG_LEVEL=info
 LOG_FILE_PATH=./logs
 ```
+
+**Telegram Bot (`telegram-bot/.env`):**
+```env
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+API_URL=http://localhost:3000
+LOG_LEVEL=info
+LOG_FILE_PATH=./logs
+```
+
+**Admin Web (`admin-web/.env`):**
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+**Важно:** Все реальные секреты должны храниться в Bitwarden.
 
 ## Документация
 
@@ -268,8 +320,9 @@ docker compose ps
 
 2. Проверьте, что `DATABASE_URL` в `api/.env` указан правильно:
 ```
-DATABASE_URL="postgresql://carwash:carwash123@localhost:5432/car_wash?schema=public"
+DATABASE_URL="postgresql://carwash:YOUR_PASSWORD@localhost:5432/car_wash?schema=public"
 ```
+Где `YOUR_PASSWORD` - это пароль из `.env` файла в корне проекта (переменная `POSTGRES_PASSWORD`).
 
 3. Если контейнер не запущен, запустите его:
 ```bash

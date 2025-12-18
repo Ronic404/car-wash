@@ -4,9 +4,9 @@ services:
     container_name: car-wash-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: carwash
-      POSTGRES_PASSWORD: carwash123
-      POSTGRES_DB: car_wash
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
