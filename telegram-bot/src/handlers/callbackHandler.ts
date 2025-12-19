@@ -3,7 +3,7 @@ import { Scenes } from 'telegraf';
 import { handleViewSlots, handleSelectSlot } from './slotsHandler';
 import { handleSelectCar } from './carHandler';
 import { handleSelectService, handleMyBookings } from './bookingHandler';
-import { handleMyCars } from './carsHandler';
+import { handleMyCars, handleDeleteCar, handleDeleteCarList } from './carsHandler';
 import logger from '../config/logger';
 
 /**
@@ -71,6 +71,19 @@ export async function handleCallback(ctx: Context) {
     if (callbackData.startsWith('select_car_')) {
       const carId = callbackData.replace('select_car_', '');
       await handleSelectCar(ctx, carId);
+      return;
+    }
+
+    // Показать список автомобилей для удаления
+    if (callbackData === 'delete_car_list') {
+      await handleDeleteCarList(ctx);
+      return;
+    }
+
+    // Удаление автомобиля
+    if (callbackData.startsWith('delete_car_')) {
+      const carId = callbackData.replace('delete_car_', '');
+      await handleDeleteCar(ctx, carId);
       return;
     }
 

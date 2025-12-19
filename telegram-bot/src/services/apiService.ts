@@ -144,6 +144,18 @@ class ApiService {
   }
 
   /**
+   * Удаление автомобиля
+   */
+  async deleteCar(carId: string): Promise<void> {
+    try {
+      await this.client.delete(`/cars/${carId}`);
+    } catch (error: any) {
+      logger.error('Ошибка удаления автомобиля', { error, carId });
+      throw new Error(error.response?.data?.error || 'Ошибка удаления автомобиля');
+    }
+  }
+
+  /**
    * Получение записей пользователя
    */
   async getUserBookings(userId: string): Promise<IBooking[]> {
