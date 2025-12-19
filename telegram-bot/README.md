@@ -22,7 +22,6 @@ npm install
 ```env
 TELEGRAM_BOT_TOKEN=your-telegram-bot-token
 API_URL=http://localhost:3000
-LOG_LEVEL=info
 LOG_FILE_PATH=./logs
 ```
 

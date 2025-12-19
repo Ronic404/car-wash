@@ -208,7 +208,6 @@ DATABASE_URL="postgresql://carwash:YOUR_PASSWORD@localhost:5432/car_wash?schema=
 API_PORT=3000
 API_URL=http://localhost:3000
 JWT_SECRET=your-secret-key-here
-LOG_LEVEL=info
 LOG_FILE_PATH=./logs
 ```
 
@@ -216,7 +215,6 @@ LOG_FILE_PATH=./logs
 ```env
 TELEGRAM_BOT_TOKEN=your-telegram-bot-token
 API_URL=http://localhost:3000
-LOG_LEVEL=info
 LOG_FILE_PATH=./logs
 ```
 

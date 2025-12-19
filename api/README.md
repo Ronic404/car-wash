@@ -27,7 +27,6 @@ DATABASE_URL="postgresql://user:password@localhost:5432/car_wash?schema=public"
 API_PORT=3000
 API_URL=http://localhost:3000
 JWT_SECRET=your-secret-key-here
-LOG_LEVEL=info
 LOG_FILE_PATH=./logs
 ```
 
