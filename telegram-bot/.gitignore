@@ -1,0 +1,15 @@
+# Файл сессий (создается автоматически)
+sessions.json
+
+# Логи
+logs/
+
+# Node modules
+node_modules/
+
+# Build
+dist/
+
+# Environment variables
+.env
+

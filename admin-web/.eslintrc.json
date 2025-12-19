@@ -1,0 +1,18 @@
+{
+  "extends": ["../../.eslintrc.json"],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "env": {
+    "browser": true,
+    "es2020": true
+  },
+  "plugins": ["@typescript-eslint", "react", "react-hooks"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "warn",
+    "react/react-in-jsx-scope": "off"
+  }
+}
+

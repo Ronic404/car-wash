@@ -1,6 +1,7 @@
 import { Context } from 'telegraf';
+import { Scenes } from 'telegraf';
 import { handleViewSlots, handleSelectSlot } from './slotsHandler';
-import { handleAddCar, handleCancelAddCar, handleSelectCar } from './carHandler';
+import { handleSelectCar } from './carHandler';
 import { handleSelectService, handleMyBookings } from './bookingHandler';
 import { handleMyCars } from './carsHandler';
 import logger from '../config/logger';
@@ -59,15 +60,10 @@ export async function handleCallback(ctx: Context) {
       return;
     }
 
-    // Добавление автомобиля
+    // Добавление автомобиля - вход в сцену
     if (callbackData === 'add_car') {
-      await handleAddCar(ctx);
-      return;
-    }
-
-    // Отмена добавления автомобиля
-    if (callbackData === 'cancel_add_car') {
-      await handleCancelAddCar(ctx);
+      await ctx.answerCbQuery();
+      await (ctx as Scenes.SceneContext).scene.enter('addCar');
       return;
     }
 

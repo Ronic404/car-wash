@@ -40,7 +40,7 @@ export async function handleMyCars(ctx: Context) {
 
     let message = '🚗 Ваши автомобили:\n\n';
 
-    cars.forEach((car: any, index: number) => {
+    cars.forEach((car, index) => {
       message += `${index + 1}. ${car.brand} ${car.model}`;
       if (car.year) {
         message += ` (${car.year} г.)`;
@@ -49,7 +49,7 @@ export async function handleMyCars(ctx: Context) {
         message += ` - ${car.color}`;
       }
       if (car.licensePlate) {
-        message += `\n   🏷️ ${car.licensePlate}`;
+        message += ` ${car.licensePlate}`;
       }
       message += '\n\n';
     });

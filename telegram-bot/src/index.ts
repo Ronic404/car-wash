@@ -1,9 +1,11 @@
-import { Telegraf } from 'telegraf';
+import { Telegraf, Scenes, Middleware, Context } from 'telegraf';
+import LocalSession = require('telegraf-session-local');
 import dotenv from 'dotenv';
 import logger from './config/logger';
 import { handleStart } from './handlers/startHandler';
 import { handleCallback } from './handlers/callbackHandler';
 import { handleMessage } from './handlers/messageHandler';
+import { addCarScene } from './scenes/addCarScene';
 
 // Загружаем переменные окружения
 dotenv.config();
@@ -18,6 +20,14 @@ if (!BOT_TOKEN) {
 // Создаем экземпляр бота
 const bot = new Telegraf(BOT_TOKEN);
 
+// Настройка сессий
+const sessionMiddleware = new LocalSession({
+  database: 'sessions.json', // Файл для хранения сессий (опционально, можно убрать для работы только в памяти)
+}).middleware();
+
+// Создаем Stage для управления сценами
+const stage = new Scenes.Stage([addCarScene]);
+
 // Middleware для логирования всех обновлений
 bot.use((ctx, next) => {
   logger.debug('Получено обновление', {
@@ -27,6 +37,13 @@ bot.use((ctx, next) => {
   });
   return next();
 });
+
+// Подключаем сессии и сцены
+bot.use(sessionMiddleware);
+// Приведение типа необходимо из-за конфликта типов между базовым Context и SceneContext
+// Stage.middleware() возвращает Middleware<SceneContext>, но bot.use ожидает Middleware<Context>
+// Это безопасное приведение, так как SceneContext расширяет Context
+bot.use(stage.middleware() as unknown as Middleware<Context>);
 
 // Обработка команды /start
 bot.command('start', handleStart);

@@ -1,5 +1,4 @@
 import { Context } from 'telegraf';
-import { handleCarInput } from './carHandler';
 import logger from '../config/logger';
 
 /**
@@ -10,29 +9,6 @@ export async function handleMessage(ctx: Context) {
     const text = (ctx.message as any)?.text;
 
     if (!text) {
-      return;
-    }
-
-    const session = (ctx as any).session || {};
-
-    // Обработка добавления автомобиля
-    if (session.addingCar) {
-      const carData = session.carData || {};
-
-      if (!carData.brand) {
-        await handleCarInput(ctx, 'brand', text);
-      } else if (!carData.model) {
-        await handleCarInput(ctx, 'model', text);
-      } else if (carData.year === undefined && !carData.yearSet) {
-        (ctx as any).session.carData.yearSet = true;
-        await handleCarInput(ctx, 'year', text);
-      } else if (!carData.color && !carData.colorSet) {
-        (ctx as any).session.carData.colorSet = true;
-        await handleCarInput(ctx, 'color', text);
-      } else if (!carData.licensePlate && !carData.licensePlateSet) {
-        (ctx as any).session.carData.licensePlateSet = true;
-        await handleCarInput(ctx, 'licensePlate', text);
-      }
       return;
     }
 

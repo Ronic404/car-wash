@@ -127,7 +127,7 @@ export async function handleSelectSlot(ctx: Context, slotId: string) {
     }
 
     // Показываем список автомобилей для выбора
-    const buttons = cars.map((car: any) => [
+    const buttons = cars.map((car) => [
       {
         text: `${car.brand} ${car.model}${car.licensePlate ? ` (${car.licensePlate})` : ''}`,
         callback_data: `select_car_${car.id}`,

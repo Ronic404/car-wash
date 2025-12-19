@@ -1,5 +1,10 @@
 import axios, { AxiosInstance } from 'axios';
 import logger from '../config/logger';
+import { ICar } from '../types/car';
+import { IUser } from '../types/user';
+import { IService } from '../types/service';
+import { ISlot } from '../types/slot';
+import { IBooking } from '../types/booking';
 
 /**
  * Сервис для взаимодействия с API
@@ -40,9 +45,9 @@ class ApiService {
     firstName?: string;
     lastName?: string;
     username?: string;
-  }) {
+  }): Promise<IUser> {
     try {
-      const response = await this.client.post('/users/telegram', {
+      const response = await this.client.post<IUser>('/users/telegram', {
         telegramId: telegramData.id,
         firstName: telegramData.firstName,
         lastName: telegramData.lastName,
@@ -58,9 +63,9 @@ class ApiService {
   /**
    * Получение доступных слотов
    */
-  async getAvailableSlots(dateFrom: Date, dateTo: Date) {
+  async getAvailableSlots(dateFrom: Date, dateTo: Date): Promise<ISlot[]> {
     try {
-      const response = await this.client.get('/slots/available', {
+      const response = await this.client.get<ISlot[]>('/slots/available', {
         params: {
           dateFrom: dateFrom.toISOString(),
           dateTo: dateTo.toISOString(),
@@ -76,9 +81,9 @@ class ApiService {
   /**
    * Получение активных услуг
    */
-  async getActiveServices() {
+  async getActiveServices(): Promise<IService[]> {
     try {
-      const response = await this.client.get('/services/active');
+      const response = await this.client.get<IService[]>('/services/active');
       return response.data;
     } catch (error) {
       logger.error('Ошибка получения услуг', { error });
@@ -95,9 +100,9 @@ class ApiService {
     serviceId: string;
     slotId: string;
     notes?: string;
-  }) {
+  }): Promise<IBooking> {
     try {
-      const response = await this.client.post('/bookings', data);
+      const response = await this.client.post<IBooking>('/bookings', data);
       return response.data;
     } catch (error: any) {
       logger.error('Ошибка создания записи', { error, data });
@@ -108,9 +113,9 @@ class ApiService {
   /**
    * Получение автомобилей пользователя
    */
-  async getUserCars(userId: string) {
+  async getUserCars(userId: string): Promise<ICar[]> {
     try {
-      const response = await this.client.get(`/cars/user/${userId}`);
+      const response = await this.client.get<ICar[]>(`/cars/user/${userId}`);
       return response.data;
     } catch (error) {
       logger.error('Ошибка получения автомобилей', { error, userId });
@@ -128,9 +133,9 @@ class ApiService {
     year?: number;
     color?: string;
     licensePlate?: string;
-  }) {
+  }): Promise<ICar> {
     try {
-      const response = await this.client.post('/cars', data);
+      const response = await this.client.post<ICar>('/cars', data);
       return response.data;
     } catch (error: any) {
       logger.error('Ошибка создания автомобиля', { error, data });
@@ -141,9 +146,9 @@ class ApiService {
   /**
    * Получение записей пользователя
    */
-  async getUserBookings(userId: string) {
+  async getUserBookings(userId: string): Promise<IBooking[]> {
     try {
-      const response = await this.client.get('/bookings', {
+      const response = await this.client.get<IBooking[]>('/bookings', {
         params: { userId },
       });
       return response.data;
