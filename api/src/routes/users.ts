@@ -40,9 +40,23 @@ router.post('/telegram', async (req, res) => {
 });
 
 /**
- * @route   GET /api/users/:id
- * @desc    Получение пользователя по ID
- * @access  Public (для Telegram бота)
+ * @swagger
+ * /api/users/{id}:
+ *   get:
+ *     summary: Получение пользователя по ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Информация о пользователе
+ *       404:
+ *         description: Пользователь не найден
  */
 router.get('/:id', async (req, res) => {
   try {

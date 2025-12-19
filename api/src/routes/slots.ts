@@ -31,30 +31,133 @@ const router = Router();
 router.get('/available', validate(getSlotsSchema), slotController.getAvailable);
 
 /**
- * @route   GET /api/slots
- * @desc    Получение всех слотов (для администраторов)
- * @access  Admin
+ * @swagger
+ * /api/slots:
+ *   get:
+ *     summary: Получение всех слотов (для администраторов)
+ *     tags: [Slots]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: dateFrom
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *       - in: query
+ *         name: dateTo
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *       - in: query
+ *         name: isAvailable
+ *         schema:
+ *           type: boolean
+ *     responses:
+ *       200:
+ *         description: Список всех слотов
+ *       401:
+ *         description: Не авторизован
  */
 router.get('/', authenticateAdmin, slotController.getAll);
 
 /**
- * @route   POST /api/slots
- * @desc    Создание нового слота
- * @access  Admin
+ * @swagger
+ * /api/slots:
+ *   post:
+ *     summary: Создание нового слота
+ *     tags: [Slots]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - date
+ *             properties:
+ *               date:
+ *                 type: string
+ *                 format: date-time
+ *               duration:
+ *                 type: integer
+ *               maxBookings:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Слот успешно создан
+ *       400:
+ *         description: Ошибка валидации
+ *       401:
+ *         description: Не авторизован
  */
 router.post('/', authenticateAdmin, validate(createSlotSchema), slotController.create);
 
 /**
- * @route   PATCH /api/slots/:id
- * @desc    Обновление слота
- * @access  Admin
+ * @swagger
+ * /api/slots/{id}:
+ *   patch:
+ *     summary: Обновление слота
+ *     tags: [Slots]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               date:
+ *                 type: string
+ *                 format: date-time
+ *               duration:
+ *                 type: integer
+ *               maxBookings:
+ *                 type: integer
+ *               isAvailable:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Слот успешно обновлен
+ *       400:
+ *         description: Ошибка валидации
+ *       401:
+ *         description: Не авторизован
  */
 router.patch('/:id', authenticateAdmin, slotController.update);
 
 /**
- * @route   DELETE /api/slots/:id
- * @desc    Удаление слота
- * @access  Admin
+ * @swagger
+ * /api/slots/{id}:
+ *   delete:
+ *     summary: Удаление слота
+ *     tags: [Slots]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       204:
+ *         description: Слот успешно удален
+ *       400:
+ *         description: Ошибка удаления
+ *       401:
+ *         description: Не авторизован
  */
 router.delete('/:id', authenticateAdmin, slotController.delete);
 
