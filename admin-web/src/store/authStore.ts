@@ -37,8 +37,6 @@ export const useAuthStore = create<IAuthState>()(
             admin: response.admin,
             isAuthenticated: true,
           });
-          // Сохраняем токен для использования в API
-          apiService.setToken(response.token);
         } catch (error) {
           logger.error('Ошибка входа', { error, email });
           throw error;
@@ -51,7 +49,6 @@ export const useAuthStore = create<IAuthState>()(
           admin: null,
           isAuthenticated: false,
         });
-        apiService.setToken(null);
       },
 
       checkAuth: async () => {
@@ -62,7 +59,6 @@ export const useAuthStore = create<IAuthState>()(
         }
 
         try {
-          apiService.setToken(token);
           const admin = await apiService.getMe();
           set({
             admin,
@@ -78,8 +74,14 @@ export const useAuthStore = create<IAuthState>()(
       name: 'auth-storage',
       partialize: (state) => ({
         token: state.token,
-        admin: state.admin,
       }),
+      onRehydrateStorage: () => (state) => {
+        // При восстановлении из localStorage, если есть токен, временно устанавливаем isAuthenticated: true
+        // чтобы избежать редиректа на /login во время проверки токена
+        if (state?.token) {
+          state.isAuthenticated = true;
+        }
+      },
     }
   )
 );

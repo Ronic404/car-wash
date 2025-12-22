@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import LoginPage from './pages/LoginPage';
@@ -23,7 +24,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, checkAuth } = useAuthStore();
+
+  // Проверяем аутентификацию при загрузке приложения
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   return (
     <Routes>

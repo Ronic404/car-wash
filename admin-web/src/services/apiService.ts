@@ -38,7 +38,11 @@ class ApiService {
       (error: AxiosError) => {
         if (error.response?.status === 401) {
           // Токен истек или недействителен
-          this.setToken(null);
+          // Сохраняем текущий путь для возврата после авторизации
+          const currentPath = window.location.pathname + window.location.search;
+          if (currentPath !== '/login') {
+            sessionStorage.setItem('redirectAfterLogin', currentPath);
+          }
           window.location.href = '/login';
         }
         logger.error('API ошибка', {
@@ -56,12 +60,6 @@ class ApiService {
     return localStorage.getItem('auth-storage')
       ? JSON.parse(localStorage.getItem('auth-storage')!).state.token
       : null;
-  }
-
-  setToken(token: string | null): void {
-    if (token) {
-      // Токен сохраняется через zustand persist
-    }
   }
 
   // Auth
