@@ -45,20 +45,55 @@ model Car {
   @@map("cars")
 }
 
+// Категории автомобилей
+model CarCategory {
+  id        String   @id @default(uuid())
+  name      String   // Название категории (легковой, внедорожник, грузовой и т.д.)
+  order     Int      @default(0) // Порядок отображения
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  servicePrices ServicePrice[]
+
+  @@index([order])
+  @@map("car_categories")
+}
+
 // Услуги автомойки
 model Service {
   id          String   @id @default(uuid())
   name        String   // Название услуги
   description String?  // Описание
-  price       Float    // Цена
-  duration    Int      // Длительность в минутах
+  order       Int      @default(0) // Порядок отображения
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  bookings Booking[]
+  bookings     Booking[]
+  servicePrices ServicePrice[]
 
+  @@index([order])
   @@map("services")
+}
+
+// Связь услуги с категорией автомобиля (цена и длительность)
+model ServicePrice {
+  id        String   @id @default(uuid())
+  serviceId String
+  categoryId String
+  price     Float    // Цена для данной категории
+  duration  Int      // Длительность в минутах для данной категории
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  service  Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  category CarCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, categoryId])
+  @@index([serviceId])
+  @@index([categoryId])
+  @@map("service_prices")
 }
 
 // Временные слоты для записи

@@ -145,11 +145,15 @@ class ApiService {
     return response.data;
   }
 
+  async getServicesTable() {
+    const response = await this.client.get('/services/table');
+    return response.data;
+  }
+
   async createService(data: {
     name: string;
     description?: string;
-    price: number;
-    duration: number;
+    order?: number;
   }) {
     const response = await this.client.post('/services', data);
     return response.data;
@@ -158,8 +162,7 @@ class ApiService {
   async updateService(id: string, data: {
     name?: string;
     description?: string;
-    price?: number;
-    duration?: number;
+    order?: number;
     isActive?: boolean;
   }) {
     const response = await this.client.patch(`/services/${id}`, data);
@@ -168,6 +171,78 @@ class ApiService {
 
   async deleteService(id: string) {
     await this.client.delete(`/services/${id}`);
+  }
+
+  async upsertServicePrice(data: {
+    serviceId: string;
+    categoryId: string;
+    price: number;
+    duration: number;
+  }) {
+    const response = await this.client.post('/services/prices', data);
+    return response.data;
+  }
+
+  async bulkUpdateServicePrices(prices: {
+    serviceId: string;
+    categoryId: string;
+    price: number;
+    duration: number;
+  }[]) {
+    const response = await this.client.patch('/services/prices/bulk', { prices });
+    return response.data;
+  }
+
+  async deleteServicePrice(serviceId: string, categoryId: string) {
+    await this.client.delete(`/services/${serviceId}/prices/${categoryId}`);
+  }
+
+  async updateServicesOrder(services: { id: string; order: number }[]) {
+    const response = await this.client.patch('/services/order', { services });
+    return response.data;
+  }
+
+  // Car Categories
+  async getCarCategories() {
+    const response = await this.client.get('/car-categories');
+    return response.data;
+  }
+
+  async getActiveCarCategories() {
+    const response = await this.client.get('/car-categories/active');
+    return response.data;
+  }
+
+  async getCarCategoryById(id: string) {
+    const response = await this.client.get(`/car-categories/${id}`);
+    return response.data;
+  }
+
+  async createCarCategory(data: {
+    name: string;
+    order?: number;
+    isActive?: boolean;
+  }) {
+    const response = await this.client.post('/car-categories', data);
+    return response.data;
+  }
+
+  async updateCarCategory(id: string, data: {
+    name?: string;
+    order?: number;
+    isActive?: boolean;
+  }) {
+    const response = await this.client.patch(`/car-categories/${id}`, data);
+    return response.data;
+  }
+
+  async deleteCarCategory(id: string) {
+    await this.client.delete(`/car-categories/${id}`);
+  }
+
+  async updateCarCategoriesOrder(categories: { id: string; order: number }[]) {
+    const response = await this.client.patch('/car-categories/order', { categories });
+    return response.data;
   }
 
   // Employees
