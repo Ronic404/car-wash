@@ -6,13 +6,16 @@ import { handleSelectService, handleMyBookings } from './bookingHandler';
 import { handleMyCars, handleDeleteCar, handleDeleteCarList } from './carsHandler';
 import { handleViewServices, handleSelectCategoryForPrice, handleViewPriceByCategory } from './servicesHandler';
 import logger from '../config/logger';
+import { isCallbackQueryWithData } from '../types/telegram';
 
 /**
  * Обработчик всех callback запросов
  */
 export async function handleCallback(ctx: Context) {
   try {
-    const callbackData = (ctx.callbackQuery as any)?.data;
+    const callbackData = isCallbackQueryWithData(ctx.callbackQuery)
+      ? ctx.callbackQuery.data
+      : undefined;
 
     if (!callbackData) {
       return;

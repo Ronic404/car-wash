@@ -1,7 +1,9 @@
 import { Context } from 'telegraf';
+import type { InlineKeyboardButton } from 'telegraf/types';
 import apiService from '../services/apiService';
 import userService from '../services/userService';
 import logger from '../config/logger';
+import type { ISlot } from '../types/slot';
 
 /**
  * Обработчик просмотра доступных слотов
@@ -38,8 +40,8 @@ export async function handleViewSlots(ctx: Context) {
     }
 
     // Группируем слоты по датам
-    const slotsByDate: { [key: string]: any[] } = {};
-    slots.forEach((slot: any) => {
+    const slotsByDate: Record<string, ISlot[]> = {};
+    slots.forEach((slot) => {
       const date = new Date(slot.date).toLocaleDateString('ru-RU');
       if (!slotsByDate[date]) {
         slotsByDate[date] = [];
@@ -50,7 +52,7 @@ export async function handleViewSlots(ctx: Context) {
     let message = '📅 Доступные слоты:\n\n';
 
     // Создаем кнопки для выбора слотов
-    const buttons: any[] = [];
+    const buttons: InlineKeyboardButton[][] = [];
 
     Object.keys(slotsByDate).forEach((date) => {
       message += `📆 ${date}:\n`;

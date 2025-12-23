@@ -1,11 +1,12 @@
 import apiService from './apiService';
 import logger from '../config/logger';
+import type { IUser } from '../types/user';
 
 /**
  * Сервис для работы с пользователями в боте
  */
 class UserService {
-  private userCache: Map<string, any> = new Map();
+  private userCache: Map<string, IUser> = new Map();
 
   /**
    * Получение или создание пользователя

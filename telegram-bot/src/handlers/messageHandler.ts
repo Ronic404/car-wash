@@ -1,12 +1,13 @@
 import { Context } from 'telegraf';
 import logger from '../config/logger';
+import { getTextFromContext } from '../types/telegram';
 
 /**
  * Обработчик текстовых сообщений
  */
 export async function handleMessage(ctx: Context) {
   try {
-    const text = (ctx.message as any)?.text;
+    const text = getTextFromContext(ctx);
 
     if (!text) {
       return;
