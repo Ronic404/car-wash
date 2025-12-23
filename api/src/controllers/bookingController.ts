@@ -49,10 +49,15 @@ class BookingController {
    */
   async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const filters: any = {};
+      const filters: {
+        status?: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+        userId?: string;
+        dateFrom?: Date;
+        dateTo?: Date;
+      } = {};
 
       if (req.query.status) {
-        filters.status = req.query.status;
+        filters.status = req.query.status as typeof filters.status;
       }
 
       if (req.query.userId) {

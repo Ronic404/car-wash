@@ -50,7 +50,11 @@ class SlotController {
    */
   async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const filters: any = {};
+      const filters: {
+        dateFrom?: Date;
+        dateTo?: Date;
+        isAvailable?: boolean;
+      } = {};
 
       if (req.query.dateFrom) {
         filters.dateFrom = new Date(req.query.dateFrom as string);
@@ -92,7 +96,12 @@ class SlotController {
    */
   async update(req: Request, res: Response): Promise<void> {
     try {
-      const updateData: any = {};
+      const updateData: {
+        date?: Date;
+        duration?: number;
+        maxBookings?: number;
+        isAvailable?: boolean;
+      } = {};
 
       if (req.body.date) {
         updateData.date = new Date(req.body.date);

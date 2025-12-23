@@ -1,5 +1,6 @@
 import prisma from '../config/database';
 import logger from '../config/logger';
+import type { IServiceTablePriceCell, ServicesTablePricesMatrix } from '../types/servicesTable';
 
 /**
  * Сервис для работы с услугами
@@ -327,9 +328,9 @@ class ServiceService {
       });
 
       // Создаем матрицу цен
-      const pricesMatrix: any[][] = [];
+      const pricesMatrix: ServicesTablePricesMatrix = [];
       services.forEach((service) => {
-        const row: any[] = [];
+        const row: IServiceTablePriceCell[] = [];
         categories.forEach((category) => {
           const servicePrice = service.servicePrices.find(
             (sp) => sp.categoryId === category.id

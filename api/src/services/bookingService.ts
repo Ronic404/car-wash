@@ -75,7 +75,7 @@ class BookingService {
     dateTo?: Date;
   }) {
     try {
-      const where: any = {};
+      const where: NonNullable<Parameters<typeof prisma.booking.findMany>[0]>['where'] = {};
 
       if (filters.status) {
         where.status = filters.status;

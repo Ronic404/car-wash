@@ -22,8 +22,8 @@ const authenticateSSE = (req: Request, res: Response, next: NextFunction) => {
       return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
     }
 
-    const decoded = jwt.verify(token, secret);
-    (req as any).admin = decoded;
+    const decoded = jwt.verify(token, secret) as NonNullable<Request['admin']>;
+    req.admin = decoded;
     next();
   } catch (error) {
     logger.error('Ошибка аутентификации SSE', { error });

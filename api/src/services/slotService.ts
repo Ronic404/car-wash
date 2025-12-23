@@ -118,7 +118,7 @@ class SlotService {
     isAvailable?: boolean;
   }) {
     try {
-      const where: any = {};
+      const where: NonNullable<Parameters<typeof prisma.timeSlot.findMany>[0]>['where'] = {};
 
       if (filters?.dateFrom || filters?.dateTo) {
         where.date = {

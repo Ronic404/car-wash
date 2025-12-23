@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import logger from '../config/logger';
+import type { ISSEMessage } from '../types/sse';
 
 /**
  * Сервис для работы с Server-Sent Events (SSE)
@@ -35,7 +36,7 @@ class SSEService {
   /**
    * Отправка сообщения конкретному клиенту
    */
-  private sendToClient(res: Response, message: { type: string; data: any }): void {
+  private sendToClient(res: Response, message: ISSEMessage): void {
     try {
       const data = `data: ${JSON.stringify(message)}\n\n`;
       res.write(data);
@@ -48,7 +49,7 @@ class SSEService {
   /**
    * Отправка сообщения всем подключенным клиентам
    */
-  private broadcast(message: { type: string; data: any }): void {
+  private broadcast(message: ISSEMessage): void {
     const data = `data: ${JSON.stringify(message)}\n\n`;
     
     this.clients.forEach((client) => {
@@ -64,23 +65,23 @@ class SSEService {
   /**
    * Отправка уведомления о новой записи всем подключенным администраторам
    */
-  notifyNewBooking(booking: any): void {
+  notifyNewBooking(booking: unknown): void {
     this.broadcast({
       type: 'new_booking',
       data: booking,
     });
-    logger.info('SSE уведомление о новой записи отправлено', { bookingId: booking.id });
+    logger.info('SSE уведомление о новой записи отправлено');
   }
 
   /**
    * Отправка уведомления об обновлении записи
    */
-  notifyBookingUpdate(booking: any): void {
+  notifyBookingUpdate(booking: unknown): void {
     this.broadcast({
       type: 'booking_update',
       data: booking,
     });
-    logger.info('SSE уведомление об обновлении записи отправлено', { bookingId: booking.id });
+    logger.info('SSE уведомление об обновлении записи отправлено');
   }
 
   /**
