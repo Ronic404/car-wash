@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import apiService from '../../services/apiService';
 import styles from './DashboardPage.module.scss';
+import type { IBooking } from '../../types/booking';
 
 const { Title } = Typography;
 
@@ -19,17 +20,17 @@ function DashboardPage() {
     today: 0,
   });
 
-  const { data: bookings, isLoading } = useQuery({
+  const { data: bookings, isLoading } = useQuery<IBooking[]>({
     queryKey: ['bookings'],
     queryFn: () => apiService.getBookings(),
   });
 
   useEffect(() => {
     if (bookings) {
-      const pending = bookings.filter((b: any) => b.status === 'PENDING').length;
-      const confirmed = bookings.filter((b: any) => b.status === 'CONFIRMED').length;
+      const pending = bookings.filter((b) => b.status === 'PENDING').length;
+      const confirmed = bookings.filter((b) => b.status === 'CONFIRMED').length;
       const today = new Date().toDateString();
-      const todayBookings = bookings.filter((b: any) => {
+      const todayBookings = bookings.filter((b) => {
         const bookingDate = new Date(b.slot.date).toDateString();
         return bookingDate === today;
       }).length;

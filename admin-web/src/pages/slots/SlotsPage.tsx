@@ -4,6 +4,7 @@ import { Card, List, Typography, Spin, Empty, Tag } from 'antd';
 import { ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import apiService from '../../services/apiService';
 import styles from './SlotsPage.module.scss';
+import type { ISlot } from '../../types/slot';
 
 const { Title, Text } = Typography;
 
@@ -13,7 +14,7 @@ function SlotsPage() {
     dateTo: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   }), []);
 
-  const { data: slots, isLoading } = useQuery({
+  const { data: slots, isLoading } = useQuery<ISlot[]>({
     queryKey: ['slots', dateFrom, dateTo],
     queryFn: () => apiService.getSlots({ dateFrom, dateTo }),
   });
@@ -27,7 +28,7 @@ function SlotsPage() {
         <List
           grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4 }}
           dataSource={slots}
-          renderItem={(slot: any) => (
+          renderItem={(slot) => (
             <List.Item>
               <Card>
                 <div className={styles.infoRow}>

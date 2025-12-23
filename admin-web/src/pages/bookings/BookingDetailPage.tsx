@@ -20,6 +20,8 @@ import {
 import apiService from '../../services/apiService';
 import { useScreenSize } from '../../hooks/useBreakpoint';
 import styles from './BookingDetailPage.module.scss';
+import type { IBooking } from '../../types/booking';
+import { getAxiosErrorText } from '../../utils/axiosUtils';
 
 const { Title } = Typography;
 
@@ -29,11 +31,27 @@ function BookingDetailPage() {
   const queryClient = useQueryClient();
   const { isMobile } = useScreenSize();
 
-  const { data: booking, isLoading } = useQuery({
+  const { data: booking, isLoading } = useQuery<IBooking>({
     queryKey: ['booking', id],
     queryFn: () => apiService.getBookingById(id!),
     enabled: !!id,
   });
+
+  const getServicePriceText = (b: IBooking): string => {
+    const prices = b.service.servicePrices?.map((sp) => sp.price) || [];
+    if (prices.length === 0) return 'цена не указана';
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return min === max ? `${min}₽` : `от ${min}₽`;
+  };
+
+  const getServiceDurationText = (b: IBooking): string => {
+    const durations = b.service.servicePrices?.map((sp) => sp.duration) || [];
+    if (durations.length === 0) return 'длительность не указана';
+    const min = Math.min(...durations);
+    const max = Math.max(...durations);
+    return min === max ? `${min} мин.` : `${min} - ${max} мин.`;
+  };
 
   const confirmMutation = useMutation({
     mutationFn: () => apiService.confirmBooking(id!),
@@ -42,8 +60,9 @@ function BookingDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       message.success('Запись подтверждена');
     },
-    onError: (error: any) => {
-      message.error(error.response?.data?.error || 'Ошибка подтверждения');
+    onError: (error: unknown) => {
+      const errText = getAxiosErrorText(error);
+      message.error(errText || 'Ошибка подтверждения');
     },
   });
 
@@ -54,8 +73,9 @@ function BookingDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       message.success('Запись отменена');
     },
-    onError: (error: any) => {
-      message.error(error.response?.data?.error || 'Ошибка отмены');
+    onError: (error: unknown) => {
+      const errText = getAxiosErrorText(error);
+      message.error(errText || 'Ошибка отмены');
     },
   });
 
@@ -66,8 +86,9 @@ function BookingDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       message.success('Запись завершена');
     },
-    onError: (error: any) => {
-      message.error(error.response?.data?.error || 'Ошибка завершения');
+    onError: (error: unknown) => {
+      const errText = getAxiosErrorText(error);
+      message.error(errText || 'Ошибка завершения');
     },
   });
 
@@ -133,7 +154,7 @@ function BookingDetailPage() {
             <strong>{booking.service.name}</strong>
             {booking.service.description && ` • ${booking.service.description}`}
             <br />
-            Цена: {booking.service.price}₽ | Длительность: {booking.service.duration} мин.
+            Цена: {getServicePriceText(booking)} | Длительность: {getServiceDurationText(booking)}
           </Descriptions.Item>
           <Descriptions.Item label="Клиент">
             {booking.user.firstName} {booking.user.lastName}

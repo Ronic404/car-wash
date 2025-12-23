@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import axios from 'axios';
 import { useAuthStore } from '../../store/authStore';
 import { useScreenSize } from '../../hooks/useBreakpoint';
 import logger from '../../utils/logger';
+import { getAxiosErrorText } from '../../utils/axiosUtils';
 import styles from './LoginPage.module.scss';
 
 const { Title } = Typography;
@@ -26,9 +26,7 @@ function LoginPage() {
       navigate('/dashboard');
     } catch (err: unknown) {
       logger.error('Ошибка входа', { error: err });
-      const errorText = axios.isAxiosError<{ error?: string }>(err)
-        ? err.response?.data?.error
-        : undefined;
+      const errorText = getAxiosErrorText(err);
       message.error(errorText || 'Ошибка входа. Проверьте данные.');
     } finally {
       setLoading(false);

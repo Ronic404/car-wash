@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import apiService from '../../services/apiService';
 import styles from './BookingsPage.module.scss';
+import type { IBooking } from '../../types/booking';
 
 const { Text, Title } = Typography;
 
@@ -17,10 +18,18 @@ function BookingsPage() {
   const [searchParams] = useSearchParams();
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
 
-  const { data: bookings, isLoading } = useQuery({
+  const { data: bookings, isLoading } = useQuery<IBooking[]>({
     queryKey: ['bookings', statusFilter],
     queryFn: () => apiService.getBookings(statusFilter !== 'all' ? { status: statusFilter } : undefined),
   });
+
+  const getServicePriceText = (booking: IBooking): string => {
+    const prices = booking.service.servicePrices?.map((sp) => sp.price) || [];
+    if (prices.length === 0) return 'цена не указана';
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return min === max ? `${min}₽` : `от ${min}₽`;
+  };
 
   const getStatusTag = (status: string) => {
     const statusConfig: { [key: string]: { color: string; text: string } } = {
@@ -65,7 +74,7 @@ function BookingsPage() {
         <List
           grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 2, xl: 3, xxl: 3 }}
           dataSource={bookings}
-          renderItem={(booking: any) => {
+          renderItem={(booking) => {
             const slotDate = new Date(booking.slot.date).toLocaleString('ru-RU');
             return (
               <List.Item>
@@ -90,7 +99,7 @@ function BookingsPage() {
                       )}
                     </div>
                     <div className={styles.infoRow}>
-                      <Text>{booking.service.name}</Text> - <Text strong>{booking.service.price}₽</Text>
+                      <Text>{booking.service.name}</Text> - <Text strong>{getServicePriceText(booking)}</Text>
                     </div>
                     <div>
                       <UserOutlined /> <Text>{booking.user.firstName} {booking.user.lastName}</Text>

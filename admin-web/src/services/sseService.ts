@@ -5,7 +5,7 @@ import logger from '../utils/logger';
  */
 class SSEService {
   private eventSource: EventSource | null = null;
-  private listeners: Map<string, Set<(data: any) => void>> = new Map();
+  private listeners: Map<string, Set<(data: unknown) => void>> = new Map();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 3000;
@@ -110,7 +110,7 @@ class SSEService {
   /**
    * Подписка на события
    */
-  on(eventType: string, callback: (data: any) => void): () => void {
+  on(eventType: string, callback: (data: unknown) => void): () => void {
     if (!this.listeners.has(eventType)) {
       this.listeners.set(eventType, new Set());
     }
