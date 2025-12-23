@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
+import { z } from 'zod';
 import bookingService from '../services/bookingService';
 import sseService from '../services/sseService';
-import { z } from 'zod';
+import { getErrorMessage } from '../utils/errorUtils';
 
 /**
  * Схемы валидации для записей
@@ -38,8 +39,8 @@ class BookingController {
       // Отправляем уведомление через SSE
       sseService.notifyNewBooking(booking);
       res.status(201).json(booking);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -68,8 +69,8 @@ class BookingController {
 
       const bookings = await bookingService.getBookings(filters);
       res.json(bookings);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -80,8 +81,8 @@ class BookingController {
     try {
       const booking = await bookingService.getBookingById(req.params.id);
       res.json(booking);
-    } catch (error: any) {
-      res.status(404).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(404).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -94,8 +95,8 @@ class BookingController {
       // Отправляем уведомление через SSE
       sseService.notifyBookingUpdate(booking);
       res.json(booking);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -108,8 +109,8 @@ class BookingController {
       // Отправляем уведомление через SSE
       sseService.notifyBookingUpdate(booking);
       res.json(booking);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -122,8 +123,8 @@ class BookingController {
       // Отправляем уведомление через SSE
       sseService.notifyBookingUpdate(booking);
       res.json(booking);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 }

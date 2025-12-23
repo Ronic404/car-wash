@@ -36,6 +36,9 @@ export async function handleStart(ctx: Context) {
             { text: '📅 Посмотреть доступные слоты', callback_data: 'view_slots' },
           ],
           [
+            { text: '💰 Прайс услуг', callback_data: 'view_services' },
+          ],
+          [
             { text: '🚗 Мои автомобили', callback_data: 'my_cars' },
             { text: '📋 Мои записи', callback_data: 'my_bookings' },
           ],

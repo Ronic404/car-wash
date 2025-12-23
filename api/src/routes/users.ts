@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import userService from '../services/userService';
+import { getErrorMessage } from '../utils/errorUtils';
 
 const router = Router();
 
@@ -34,8 +35,8 @@ router.post('/telegram', async (req, res) => {
   try {
     const user = await userService.getOrCreateUser(req.body);
     res.json(user);
-  } catch (error: any) {
-    res.status(400).json({ error: error.message });
+  } catch (error: unknown) {
+    res.status(400).json({ error: getErrorMessage(error) });
   }
 });
 
@@ -62,8 +63,8 @@ router.get('/:id', async (req, res) => {
   try {
     const user = await userService.getUserById(req.params.id);
     res.json(user);
-  } catch (error: any) {
-    res.status(404).json({ error: error.message });
+  } catch (error: unknown) {
+    res.status(404).json({ error: getErrorMessage(error) });
   }
 });
 

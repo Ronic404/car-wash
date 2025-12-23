@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import serviceService from '../services/serviceService';
 import { z } from 'zod';
+import serviceService from '../services/serviceService';
+import { getErrorMessage } from '../utils/errorUtils';
 
 /**
  * Схемы валидации для услуг
@@ -57,8 +58,8 @@ class ServiceController {
     try {
       const services = await serviceService.getActiveServices();
       res.json(services);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -69,8 +70,8 @@ class ServiceController {
     try {
       const services = await serviceService.getAllServices();
       res.json(services);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -81,8 +82,8 @@ class ServiceController {
     try {
       const service = await serviceService.getServiceById(req.params.id);
       res.json(service);
-    } catch (error: any) {
-      res.status(404).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(404).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -93,8 +94,8 @@ class ServiceController {
     try {
       const service = await serviceService.createService(req.body);
       res.status(201).json(service);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -105,8 +106,8 @@ class ServiceController {
     try {
       const service = await serviceService.updateService(req.params.id, req.body);
       res.json(service);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -117,8 +118,8 @@ class ServiceController {
     try {
       await serviceService.deleteService(req.params.id);
       res.status(204).send();
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -129,8 +130,8 @@ class ServiceController {
     try {
       const servicePrice = await serviceService.upsertServicePrice(req.body);
       res.json(servicePrice);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -141,8 +142,8 @@ class ServiceController {
     try {
       await serviceService.bulkUpdateServicePrices(req.body.prices);
       res.json({ success: true });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -156,8 +157,8 @@ class ServiceController {
         req.params.categoryId
       );
       res.status(204).send();
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -168,8 +169,8 @@ class ServiceController {
     try {
       await serviceService.updateServicesOrder(req.body.services);
       res.json({ success: true });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -180,8 +181,8 @@ class ServiceController {
     try {
       const table = await serviceService.getServicesTable();
       res.json(table);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 }

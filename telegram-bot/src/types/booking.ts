@@ -1,3 +1,7 @@
+import { ICar } from './car';
+import { IService } from './service';
+import { ISlot } from './slot';
+
 /**
  * Интерфейс для записи
  */
@@ -13,5 +17,9 @@ export interface IBooking {
   updatedAt?: string;
   confirmedAt?: string | null;
   cancelledAt?: string | null;
+  // Связанные объекты (приходят из API с include)
+  car?: ICar;
+  service?: IService;
+  slot?: ISlot;
 }
 

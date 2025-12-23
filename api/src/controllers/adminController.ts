@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import adminService from '../services/adminService';
 import { z } from 'zod';
+import adminService from '../services/adminService';
+import { getErrorMessage } from '../utils/errorUtils';
 
 /**
  * Схемы валидации для администраторов
@@ -37,8 +38,8 @@ class AdminController {
         firstName: admin.firstName,
         lastName: admin.lastName,
       });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -50,8 +51,8 @@ class AdminController {
       const { email, password } = req.body;
       const result = await adminService.loginAdmin(email, password);
       res.json(result);
-    } catch (error: any) {
-      res.status(401).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(401).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -67,8 +68,8 @@ class AdminController {
 
       const admin = await adminService.getAdminById(req.admin.adminId);
       res.json(admin);
-    } catch (error: any) {
-      res.status(404).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(404).json({ error: getErrorMessage(error) });
     }
   }
 }

@@ -102,11 +102,10 @@ export async function handleSelectSlot(ctx: Context, slotId: string) {
       return;
     }
 
-    // Сохраняем выбранный слот в контексте пользователя
-    // В реальности это должно храниться в БД или кеше
-    (ctx as any).session = (ctx as any).session || {};
-    (ctx as any).session.selectedSlotId = slotId;
-    (ctx as any).session.userId = user.id;
+    // Сохраняем выбранный слот в сессии пользователя
+    ctx.session ??= {};
+    ctx.session.selectedSlotId = slotId;
+    ctx.session.userId = user.id;
 
     // Получаем автомобили пользователя
     const cars = await apiService.getUserCars(user.id);

@@ -55,7 +55,7 @@ addCarScene.enter(async (ctx) => {
   } catch (error) {
     logger.error('Ошибка входа в сцену добавления автомобиля', { error, userId: ctx.from?.id });
     await ctx.reply('Произошла ошибка. Попробуйте позже.');
-    ctx.scene.leave();
+    return await ctx.scene.leave();
   }
 });
 
@@ -241,13 +241,13 @@ addCarScene.on('text', async (ctx) => {
   } catch (error) {
     logger.error('Ошибка обработки ввода данных автомобиля в сцене', { error, userId: ctx.from?.id });
     await ctx.reply('Произошла ошибка при добавлении автомобиля. Попробуйте позже.');
-    ctx.scene.leave();
+    return await ctx.scene.leave();
   }
 });
 
 // Обработка команды /start для выхода из сцены
 addCarScene.command('start', async (ctx) => {
   await ctx.reply('Добавление автомобиля отменено.');
-  ctx.scene.leave();
+  return await ctx.scene.leave();
 });
 

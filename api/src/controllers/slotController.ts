@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import slotService from '../services/slotService';
 import { z } from 'zod';
+import slotService from '../services/slotService';
+import { getErrorMessage } from '../utils/errorUtils';
 
 /**
  * Схемы валидации для слотов
@@ -39,8 +40,8 @@ class SlotController {
 
       const slots = await slotService.getAvailableSlots(dateFrom, dateTo);
       res.json(slots);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -65,8 +66,8 @@ class SlotController {
 
       const slots = await slotService.getAllSlots(filters);
       res.json(slots);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -81,8 +82,8 @@ class SlotController {
         maxBookings: req.body.maxBookings,
       });
       res.status(201).json(slot);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -111,8 +112,8 @@ class SlotController {
 
       const slot = await slotService.updateSlot(req.params.id, updateData);
       res.json(slot);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -123,8 +124,8 @@ class SlotController {
     try {
       await slotService.deleteSlot(req.params.id);
       res.status(204).send();
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 }

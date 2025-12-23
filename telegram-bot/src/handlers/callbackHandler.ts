@@ -4,6 +4,7 @@ import { handleViewSlots, handleSelectSlot } from './slotsHandler';
 import { handleSelectCar } from './carHandler';
 import { handleSelectService, handleMyBookings } from './bookingHandler';
 import { handleMyCars, handleDeleteCar, handleDeleteCarList } from './carsHandler';
+import { handleViewServices, handleSelectCategoryForPrice, handleViewPriceByCategory } from './servicesHandler';
 import logger from '../config/logger';
 
 /**
@@ -32,6 +33,9 @@ export async function handleCallback(ctx: Context) {
               { text: '📅 Посмотреть доступные слоты', callback_data: 'view_slots' },
             ],
             [
+              { text: '💰 Прайс услуг', callback_data: 'view_services' },
+            ],
+            [
               { text: '🚗 Мои автомобили', callback_data: 'my_cars' },
               { text: '📋 Мои записи', callback_data: 'my_bookings' },
             ],
@@ -44,6 +48,25 @@ export async function handleCallback(ctx: Context) {
     // Просмотр слотов
     if (callbackData === 'view_slots') {
       await handleViewSlots(ctx);
+      return;
+    }
+
+    // Просмотр прайса услуг
+    if (callbackData === 'view_services') {
+      await handleViewServices(ctx);
+      return;
+    }
+
+    // Выбор категории для точного прайса
+    if (callbackData === 'select_category_for_price') {
+      await handleSelectCategoryForPrice(ctx);
+      return;
+    }
+
+    // Просмотр прайса для выбранной категории
+    if (callbackData.startsWith('view_price_by_category_')) {
+      const categoryId = callbackData.replace('view_price_by_category_', '');
+      await handleViewPriceByCategory(ctx, categoryId);
       return;
     }
 

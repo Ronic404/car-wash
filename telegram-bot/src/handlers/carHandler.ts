@@ -22,8 +22,7 @@ export async function handleSelectCar(ctx: Context, carId: string) {
       return;
     }
 
-    const session = (ctx as any).session || {};
-    const slotId = session.selectedSlotId;
+    const slotId = ctx.session?.selectedSlotId;
 
     if (!slotId) {
       await ctx.reply('Ошибка: слот не выбран. Начните заново.');
@@ -39,12 +38,27 @@ export async function handleSelectCar(ctx: Context, carId: string) {
     }
 
     // Показываем список услуг
-    const buttons = services.map((service: any) => [
-      {
-        text: `${service.name} - ${service.price}₽`,
-        callback_data: `select_service_${service.id}_${carId}_${slotId}`,
-      },
-    ]);
+    const buttons = services.map((service) => {
+      // Получаем цену из servicePrices
+      const servicePrices = service.servicePrices || [];
+      let priceText = 'цена не указана';
+      
+      if (servicePrices.length === 1) {
+        priceText = `${servicePrices[0].price}₽`;
+      } else if (servicePrices.length > 1) {
+        const prices = servicePrices.map((sp) => sp.price);
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        priceText = minPrice === maxPrice ? `${minPrice}₽` : `от ${minPrice}₽`;
+      }
+      
+      return [
+        {
+          text: `${service.name} - ${priceText}`,
+          callback_data: `select_service_${service.id}_${carId}_${slotId}`,
+        },
+      ];
+    });
 
     buttons.push([{ text: '◀️ Назад', callback_data: 'view_slots' }]);
 

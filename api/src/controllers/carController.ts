@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import carService from '../services/carService';
 import { z } from 'zod';
+import carService from '../services/carService';
+import { getErrorMessage } from '../utils/errorUtils';
 
 /**
  * Схемы валидации для автомобилей
@@ -27,8 +28,8 @@ class CarController {
     try {
       const car = await carService.createCar(req.body);
       res.status(201).json(car);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -39,8 +40,8 @@ class CarController {
     try {
       const cars = await carService.getUserCars(req.params.userId);
       res.json(cars);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -51,8 +52,8 @@ class CarController {
     try {
       const car = await carService.getCarById(req.params.id);
       res.json(car);
-    } catch (error: any) {
-      res.status(404).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(404).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -63,8 +64,8 @@ class CarController {
     try {
       const car = await carService.updateCar(req.params.id, req.body);
       res.json(car);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -75,8 +76,8 @@ class CarController {
     try {
       await carService.deleteCar(req.params.id);
       res.status(204).send();
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 }

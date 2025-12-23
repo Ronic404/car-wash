@@ -38,18 +38,40 @@ export async function handleSelectService(
     });
 
     // Очищаем сессию
-    (ctx as any).session = (ctx as any).session || {};
-    (ctx as any).session.selectedSlotId = null;
+    ctx.session ??= {};
+    ctx.session.selectedSlotId = null;
+
+    if (!booking.slot) {
+      await ctx.reply('Ошибка: не удалось получить информацию о слоте');
+      return;
+    }
+
+    if (!booking.car) {
+      await ctx.reply('Ошибка: не удалось получить информацию об автомобиле');
+      return;
+    }
 
     const slotDate = new Date(booking.slot.date).toLocaleString('ru-RU');
+
+    // Получаем цену из servicePrices, если доступна
+    const service = booking.service;
+    const servicePrices = service?.servicePrices || [];
+    let priceText = 'цена будет определена администратором';
+    
+    if (servicePrices.length > 0) {
+      const prices = servicePrices.map((sp) => sp.price);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      priceText = minPrice === maxPrice ? `${minPrice}₽` : `от ${minPrice}₽`;
+    }
 
     await ctx.reply(
       `✅ Запись успешно создана!
 
 📅 Дата и время: ${slotDate}
 🚗 Автомобиль: ${booking.car.brand} ${booking.car.model}
-💼 Услуга: ${booking.service.name}
-💰 Цена: ${booking.service.price}₽
+💼 Услуга: ${service?.name || 'Услуга'}
+💰 Цена: ${priceText}
 📊 Статус: Ожидает подтверждения
 
 Администратор скоро подтвердит вашу запись. Вы получите уведомление.`,
@@ -66,7 +88,8 @@ export async function handleSelectService(
       bookingId: booking.id,
       userId: user.id,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Не удалось создать запись';
     logger.error('Ошибка создания записи', {
       error,
       serviceId,
@@ -74,7 +97,7 @@ export async function handleSelectService(
       slotId,
       userId: ctx.from?.id,
     });
-    await ctx.reply(`❌ Ошибка: ${error.message || 'Не удалось создать запись'}`);
+    await ctx.reply(`❌ Ошибка: ${errorMessage}`);
   }
 }
 
@@ -115,26 +138,46 @@ export async function handleMyBookings(ctx: Context) {
 
     let message = '📋 Ваши записи:\n\n';
 
-    bookings.forEach((booking: any, index: number) => {
+    bookings.forEach((booking, index) => {
+      if (!booking.slot || !booking.car) {
+        return; // Пропускаем записи без необходимых данных
+      }
+
       const slotDate = new Date(booking.slot.date).toLocaleString('ru-RU');
-      const statusEmoji = {
+      
+      const statusEmojiMap = {
         PENDING: '⏳',
         CONFIRMED: '✅',
         CANCELLED: '❌',
         COMPLETED: '✔️',
-      }[booking.status] || '❓';
-
-      const statusText = {
+      };
+      
+      const statusTextMap = {
         PENDING: 'Ожидает подтверждения',
         CONFIRMED: 'Подтверждена',
         CANCELLED: 'Отменена',
         COMPLETED: 'Завершена',
-      }[booking.status] || booking.status;
+      };
+
+      const statusEmoji = statusEmojiMap[booking.status] || '❓';
+      const statusText = statusTextMap[booking.status] || booking.status;
+
+      // Получаем цену из servicePrices, если доступна
+      const service = booking.service;
+      const servicePrices = service?.servicePrices || [];
+      let priceText = 'цена не указана';
+      
+      if (servicePrices.length > 0) {
+        const prices = servicePrices.map((sp) => sp.price);
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        priceText = minPrice === maxPrice ? `${minPrice}₽` : `от ${minPrice}₽`;
+      }
 
       message += `${index + 1}. ${statusEmoji} ${statusText}\n`;
       message += `   📅 ${slotDate}\n`;
       message += `   🚗 ${booking.car.brand} ${booking.car.model}\n`;
-      message += `   💼 ${booking.service.name} - ${booking.service.price}₽\n\n`;
+      message += `   💼 ${service?.name || 'Услуга'} - ${priceText}\n\n`;
     });
 
     await ctx.reply(message, {

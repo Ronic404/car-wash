@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import carCategoryService from '../services/carCategoryService';
 import { z } from 'zod';
+import carCategoryService from '../services/carCategoryService';
+import { getErrorMessage } from '../utils/errorUtils';
 
 /**
  * Схемы валидации для категорий
@@ -43,8 +44,8 @@ class CarCategoryController {
     try {
       const categories = await carCategoryService.getAllCategories();
       res.json(categories);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -55,8 +56,8 @@ class CarCategoryController {
     try {
       const categories = await carCategoryService.getActiveCategories();
       res.json(categories);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -69,8 +70,8 @@ class CarCategoryController {
         req.params.id
       );
       res.json(category);
-    } catch (error: any) {
-      res.status(404).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(404).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -81,8 +82,8 @@ class CarCategoryController {
     try {
       const category = await carCategoryService.createCategory(req.body);
       res.status(201).json(category);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -96,8 +97,8 @@ class CarCategoryController {
         req.body
       );
       res.json(category);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -108,8 +109,8 @@ class CarCategoryController {
     try {
       await carCategoryService.deleteCategory(req.params.id);
       res.status(204).send();
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -120,8 +121,8 @@ class CarCategoryController {
     try {
       await carCategoryService.updateCategoriesOrder(req.body.categories);
       res.json({ success: true });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 }

@@ -5,12 +5,19 @@ import { IUser } from '../types/user';
 import { IService } from '../types/service';
 import { ISlot } from '../types/slot';
 import { IBooking } from '../types/booking';
+import { ICarCategory } from '../types/carCategory';
 
 /**
  * Сервис для взаимодействия с API
  */
 class ApiService {
   private client: AxiosInstance;
+
+  private getAxiosBackendErrorMessage(error: unknown): string | undefined {
+    return axios.isAxiosError<{ error?: string }>(error)
+      ? error.response?.data?.error
+      : undefined;
+  }
 
   constructor() {
     const apiUrl = process.env.API_URL || 'http://localhost:3000';
@@ -25,13 +32,17 @@ class ApiService {
     // Interceptor для логирования ошибок
     this.client.interceptors.response.use(
       (response) => response,
-      (error) => {
-        logger.error('API ошибка', {
-          url: error.config?.url,
-          method: error.config?.method,
-          status: error.response?.status,
-          message: error.message,
-        });
+      (error: unknown) => {
+        if (axios.isAxiosError(error)) {
+          logger.error('API ошибка', {
+            url: error.config?.url,
+            method: error.config?.method,
+            status: error.response?.status,
+            message: error.message,
+          });
+        } else {
+          logger.error('API ошибка', { error });
+        }
         return Promise.reject(error);
       }
     );
@@ -54,9 +65,10 @@ class ApiService {
         username: telegramData.username,
       });
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Ошибка получения/создания пользователя', { error, telegramData });
-      throw new Error(error.response?.data?.error || 'Ошибка работы с пользователем');
+      const errorMessage = this.getAxiosBackendErrorMessage(error);
+      throw new Error(errorMessage || 'Ошибка работы с пользователем');
     }
   }
 
@@ -104,9 +116,10 @@ class ApiService {
     try {
       const response = await this.client.post<IBooking>('/bookings', data);
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Ошибка создания записи', { error, data });
-      throw new Error(error.response?.data?.error || 'Ошибка создания записи');
+      const errorMessage = this.getAxiosBackendErrorMessage(error);
+      throw new Error(errorMessage || 'Ошибка создания записи');
     }
   }
 
@@ -137,9 +150,10 @@ class ApiService {
     try {
       const response = await this.client.post<ICar>('/cars', data);
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Ошибка создания автомобиля', { error, data });
-      throw new Error(error.response?.data?.error || 'Ошибка создания автомобиля');
+      const errorMessage = this.getAxiosBackendErrorMessage(error);
+      throw new Error(errorMessage || 'Ошибка создания автомобиля');
     }
   }
 
@@ -149,9 +163,10 @@ class ApiService {
   async deleteCar(carId: string): Promise<void> {
     try {
       await this.client.delete(`/cars/${carId}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Ошибка удаления автомобиля', { error, carId });
-      throw new Error(error.response?.data?.error || 'Ошибка удаления автомобиля');
+      const errorMessage = this.getAxiosBackendErrorMessage(error);
+      throw new Error(errorMessage || 'Ошибка удаления автомобиля');
     }
   }
 
@@ -166,6 +181,19 @@ class ApiService {
       return response.data;
     } catch (error) {
       logger.error('Ошибка получения записей', { error, userId });
+      throw error;
+    }
+  }
+
+  /**
+   * Получение активных категорий автомобилей
+   */
+  async getActiveCategories(): Promise<ICarCategory[]> {
+    try {
+      const response = await this.client.get<ICarCategory[]>('/car-categories/active');
+      return response.data;
+    } catch (error) {
+      logger.error('Ошибка получения категорий', { error });
       throw error;
     }
   }

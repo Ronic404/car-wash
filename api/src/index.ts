@@ -18,11 +18,20 @@ const server = createServer(app);
 const PORT = process.env.API_PORT || 3000;
 
 // Middleware для безопасности
+// Helmet устанавливает защитные HTTP заголовки (XSS, clickjacking, MIME sniffing и др.)
 app.use(helmet());
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3001'],
   credentials: true,
 }));
+
+// Отключаем кэширование для всех API ответов
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
 
 // Парсинг JSON
 app.use(express.json());
