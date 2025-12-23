@@ -17,8 +17,8 @@ import {
   CloseCircleOutlined,
   CheckOutlined,
 } from '@ant-design/icons';
-import apiService from '../services/apiService';
-import { useScreenSize } from '../hooks/useBreakpoint';
+import apiService from '../../services/apiService';
+import { useScreenSize } from '../../hooks/useBreakpoint';
 import styles from './BookingDetailPage.module.scss';
 
 const { Title } = Typography;
@@ -191,3 +191,5 @@ function BookingDetailPage() {
 }
 
 export default BookingDetailPage;
+
+

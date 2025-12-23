@@ -8,7 +8,7 @@ import {
   PhoneOutlined,
   CalendarOutlined,
 } from '@ant-design/icons';
-import apiService from '../services/apiService';
+import apiService from '../../services/apiService';
 import styles from './BookingsPage.module.scss';
 
 const { Text, Title } = Typography;
@@ -115,3 +115,5 @@ function BookingsPage() {
 }
 
 export default BookingsPage;
+
+

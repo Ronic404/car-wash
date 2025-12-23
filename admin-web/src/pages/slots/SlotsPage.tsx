@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, List, Typography, Spin, Empty, Tag } from 'antd';
 import { ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import apiService from '../services/apiService';
+import apiService from '../../services/apiService';
 import styles from './SlotsPage.module.scss';
 
 const { Title, Text } = Typography;
@@ -59,3 +59,5 @@ function SlotsPage() {
 }
 
 export default SlotsPage;
+
+

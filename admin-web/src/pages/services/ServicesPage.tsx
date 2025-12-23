@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { Typography, Spin, Empty } from 'antd';
-import apiService from '../services/apiService';
-import { ServicesTable } from '../components/ServicesTable/ServicesTable';
-import { IServicesTable } from '../types/service';
+import apiService from '../../services/apiService';
+import { ServicesTable } from '../../components/ServicesTable/ServicesTable';
+import { IServicesTable } from '../../types/service';
 import styles from './ServicesPage.module.scss';
 
 const { Title } = Typography;
@@ -28,3 +28,5 @@ function ServicesPage() {
 }
 
 export default ServicesPage;
+
+

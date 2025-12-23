@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import axios from 'axios';
-import { useAuthStore } from '../store/authStore';
-import { useScreenSize } from '../hooks/useBreakpoint';
-import logger from '../utils/logger';
+import { useAuthStore } from '../../store/authStore';
+import { useScreenSize } from '../../hooks/useBreakpoint';
+import logger from '../../utils/logger';
 import styles from './LoginPage.module.scss';
 
 const { Title } = Typography;
@@ -100,3 +100,5 @@ function LoginPage() {
 }
 
 export default LoginPage;
+
+

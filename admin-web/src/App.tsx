@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
-import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import BookingsPage from './pages/BookingsPage';
-import BookingDetailPage from './pages/BookingDetailPage';
-import SlotsPage from './pages/SlotsPage';
-import ServicesPage from './pages/ServicesPage';
-import EmployeesPage from './pages/EmployeesPage';
+import LoginPage from './pages/auth/LoginPage';
+import DashboardPage from './pages/dashboard/DashboardPage';
+import BookingsPage from './pages/bookings/BookingsPage';
+import BookingDetailPage from './pages/bookings/BookingDetailPage';
+import SlotsPage from './pages/slots/SlotsPage';
+import ServicesPage from './pages/services/ServicesPage';
+import EmployeesPage from './pages/employees/EmployeesPage';
 import Layout from './components/Layout';
 
 /**
