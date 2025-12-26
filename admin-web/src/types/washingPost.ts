@@ -1,6 +1,6 @@
 import type { IService } from './service';
 
-export interface IWashingPostServiceLink {
+interface IWashingPostServiceLink {
   id: string;
   postId: string;
   serviceId: string;

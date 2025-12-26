@@ -5,7 +5,7 @@ import { IWashingPost } from './washingPost';
 /**
  * Интерфейс для цены услуги (как приходит из API)
  */
-export interface IServicePrice {
+interface IServicePrice {
   id: string;
   serviceId: string;
   categoryId: string;
@@ -16,7 +16,7 @@ export interface IServicePrice {
 /**
  * Интерфейс для услуги (как приходит из API)
  */
-export interface IBookingService {
+interface IBookingService {
   id: string;
   name: string;
   description?: string | null;

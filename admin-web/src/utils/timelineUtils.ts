@@ -1,4 +1,4 @@
-export interface ITimeMark {
+interface ITimeMark {
   /** минуты от начала дня */
   minutesFromStart: number;
   label: string;

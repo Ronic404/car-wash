@@ -14,7 +14,7 @@ function maxDurationMinutes(service: IService): number {
   return durations.length ? Math.max(...durations) : 60;
 }
 
-export interface IOccupyTimeModalProps {
+interface IOccupyTimeModalProps {
   open: boolean;
   date: Date;
   posts: IWashingPost[];

@@ -1,7 +1,7 @@
 /**
  * Интерфейс для цены услуги (для категории автомобиля)
  */
-export interface IServicePrice {
+interface IServicePrice {
   id: string;
   serviceId: string;
   categoryId: string;

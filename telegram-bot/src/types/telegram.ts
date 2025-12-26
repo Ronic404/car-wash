@@ -12,10 +12,6 @@ export function isCallbackQueryWithData(
   );
 }
 
-export function isTextMessage(update: Update): update is Update.MessageUpdate {
-  return update.update_id !== undefined && (update as Update.MessageUpdate).message !== undefined;
-}
-
 export function getTextFromContext(ctx: Context): string | undefined {
   const msg = (ctx.message as unknown) as { text?: unknown } | undefined;
   return typeof msg?.text === 'string' ? msg.text : undefined;

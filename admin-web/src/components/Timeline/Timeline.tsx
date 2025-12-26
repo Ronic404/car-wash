@@ -11,7 +11,7 @@ import { generateTimeMarks } from '../../utils/timelineUtils';
 
 const { Text } = Typography;
 
-export interface ITimelineProps {
+interface ITimelineProps {
   date: Date;
   posts: IWashingPost[];
   schedules?: IWashingPostSchedule[];

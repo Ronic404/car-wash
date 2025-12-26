@@ -5,7 +5,7 @@ import type { IWashingPost } from '../../types/washingPost';
 import apiService from '../../services/apiService';
 import { getAxiosErrorText } from '../../utils/axiosUtils';
 
-export interface ICreatePostModalProps {
+interface ICreatePostModalProps {
   open: boolean;
   posts: IWashingPost[];
   onClose: () => void;

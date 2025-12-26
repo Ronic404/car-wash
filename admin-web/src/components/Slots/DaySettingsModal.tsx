@@ -17,7 +17,7 @@ function timeToMinutes(value: Dayjs): number {
   return value.hour() * 60 + value.minute();
 }
 
-export interface IDaySettingsModalProps {
+interface IDaySettingsModalProps {
   open: boolean;
   date: Date;
   posts: IWashingPost[];
