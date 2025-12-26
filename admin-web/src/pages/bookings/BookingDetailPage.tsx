@@ -100,7 +100,7 @@ function BookingDetailPage() {
     return <div>Запись не найдена</div>;
   }
 
-  const slotDate = new Date(booking.slot.date).toLocaleString('ru-RU');
+  const slotDate = new Date(booking.startAt).toLocaleString('ru-RU');
   const statusConfig: { [key: string]: { color: string; text: string } } = {
     PENDING: { color: 'warning', text: 'Ожидает подтверждения' },
     CONFIRMED: { color: 'success', text: 'Подтверждена' },

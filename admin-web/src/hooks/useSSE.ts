@@ -4,6 +4,14 @@ import { useAuthStore } from '../store/authStore';
 import sseService from '../services/sseService';
 import logger from '../utils/logger';
 
+function isBookingLike(data: unknown): data is { id: string } {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    typeof (data as { id?: unknown }).id === 'string'
+  );
+}
+
 /**
  * Хук для работы с Server-Sent Events
  */
@@ -31,7 +39,9 @@ export function useSSE() {
       logger.info('Получено уведомление об обновлении записи', { booking });
       // Обновляем кеш записей и конкретной записи
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['booking', booking.id] });
+      if (isBookingLike(booking)) {
+        queryClient.invalidateQueries({ queryKey: ['booking', booking.id] });
+      }
     });
 
     // Cleanup при размонтировании

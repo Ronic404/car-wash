@@ -2,42 +2,115 @@ import prisma from '../config/database';
 import logger from '../config/logger';
 import { BookingStatus } from '@prisma/client';
 
+function addMinutes(d: Date, minutes: number): Date {
+  return new Date(d.getTime() + minutes * 60 * 1000);
+}
+
+function dayStart(d: Date): Date {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function overlap(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date): boolean {
+  return aStart < bEnd && bStart < aEnd;
+}
+
+function getMaxServiceDurationMinutes(service: { servicePrices: { duration: number }[] }): number {
+  if (!service.servicePrices || service.servicePrices.length === 0) return 60;
+  return Math.max(...service.servicePrices.map((sp) => sp.duration));
+}
+
 /**
  * Сервис для работы с записями
  */
 class BookingService {
   /**
-   * Создание новой записи
+   * Создание записи по времени (новый поток: услуга -> время -> авто)
+   * - проверяет расписание поста на день
+   * - проверяет пересечения с записями (по длительности=max по категориям)
+   * - проверяет пересечения с блокировками (TimeBlock)
+   * - создаёт Booking
    */
-  async createBooking(data: {
+  async createBookingByTime(data: {
     userId: string;
     carId: string;
     serviceId: string;
-    slotId: string;
+    postId: string;
+    startAt: Date;
     notes?: string;
   }) {
     try {
-      // Проверяем доступность слота
-      const slot = await prisma.timeSlot.findUnique({
-        where: { id: data.slotId },
+      const service = await prisma.service.findUnique({
+        where: { id: data.serviceId },
+        include: { servicePrices: true },
       });
-
-      if (!slot || !slot.isAvailable) {
-        throw new Error('Слот недоступен');
+      if (!service || !service.isActive) {
+        throw new Error('Услуга недоступна');
       }
+      const durationMinutes = getMaxServiceDurationMinutes(service);
+      const endAt = addMinutes(data.startAt, durationMinutes);
 
-      // Проверяем количество существующих записей в этом слоте
-      const existingBookings = await prisma.booking.count({
+      // Проверяем, что услуга разрешена на посту
+      const allowed = await prisma.washingPostService.findUnique({
         where: {
-          slotId: data.slotId,
-          status: {
-            in: ['PENDING', 'CONFIRMED'],
-          },
+          postId_serviceId: { postId: data.postId, serviceId: data.serviceId },
         },
       });
+      if (!allowed) {
+        throw new Error('Услуга недоступна на выбранном посту');
+      }
 
-      if (existingBookings >= slot.maxBookings) {
-        throw new Error('Слот уже занят');
+      // Проверяем расписание на день
+      const day = dayStart(data.startAt);
+      const schedule = await prisma.washingPostSchedule.findUnique({
+        where: { postId_date: { postId: data.postId, date: day } },
+      });
+      if (!schedule) {
+        throw new Error('Пост недоступен в выбранный день');
+      }
+      if (!schedule.isActive) {
+        throw new Error('Пост неактивен в выбранный день');
+      }
+
+      const minutes = data.startAt.getHours() * 60 + data.startAt.getMinutes();
+      if (
+        minutes < schedule.workFromMinutes ||
+        minutes + durationMinutes > schedule.workToMinutes
+      ) {
+        throw new Error('Время вне часов работы поста');
+      }
+
+      // Пересечения с блокировками
+      const blocks = await prisma.timeBlock.findMany({
+        where: {
+          postId: data.postId,
+          startAt: { lt: endAt },
+          endAt: { gt: data.startAt },
+        },
+        select: { startAt: true, endAt: true },
+      });
+      if (blocks.some((b) => overlap(b.startAt, b.endAt, data.startAt, endAt))) {
+        throw new Error('Время занято (блокировка)');
+      }
+
+      // Пересечения с записями (PENDING/CONFIRMED) по посту за день
+      const dayEnd = addMinutes(day, 24 * 60);
+      const bookings = await prisma.booking.findMany({
+        where: {
+          status: { in: ['PENDING', 'CONFIRMED'] },
+          postId: data.postId,
+          startAt: { gte: day, lt: dayEnd },
+        },
+        select: { startAt: true, durationMinutes: true },
+      });
+      const hasBookingOverlap = bookings.some((b) => {
+        const bStart = b.startAt;
+        const bEnd = addMinutes(bStart, b.durationMinutes);
+        return overlap(bStart, bEnd, data.startAt, endAt);
+      });
+      if (hasBookingOverlap) {
+        throw new Error('Время занято (есть запись)');
       }
 
       const booking = await prisma.booking.create({
@@ -45,22 +118,24 @@ class BookingService {
           userId: data.userId,
           carId: data.carId,
           serviceId: data.serviceId,
-          slotId: data.slotId,
+          postId: data.postId,
+          startAt: data.startAt,
+          durationMinutes,
           notes: data.notes,
           status: 'PENDING',
         },
         include: {
           user: true,
           car: true,
-          service: true,
-          slot: true,
+          service: { include: { servicePrices: true } },
+          post: true,
         },
       });
 
-      logger.info('Создана новая запись', { bookingId: booking.id });
+      logger.info('Создана новая запись (by-time)', { bookingId: booking.id });
       return booking;
     } catch (error) {
-      logger.error('Ошибка создания записи', { error, data });
+      logger.error('Ошибка создания записи (by-time)', { error, data });
       throw error;
     }
   }
@@ -86,11 +161,9 @@ class BookingService {
       }
 
       if (filters.dateFrom || filters.dateTo) {
-        where.slot = {
-          date: {
-            ...(filters.dateFrom && { gte: filters.dateFrom }),
-            ...(filters.dateTo && { lte: filters.dateTo }),
-          },
+        where.startAt = {
+          ...(filters.dateFrom && { gte: filters.dateFrom }),
+          ...(filters.dateTo && { lte: filters.dateTo }),
         };
       }
 
@@ -99,8 +172,8 @@ class BookingService {
         include: {
           user: true,
           car: true,
-          service: true,
-          slot: true,
+          service: { include: { servicePrices: true } },
+          post: true,
         },
         orderBy: {
           createdAt: 'desc',
@@ -124,8 +197,8 @@ class BookingService {
         include: {
           user: true,
           car: true,
-          service: true,
-          slot: true,
+          service: { include: { servicePrices: true } },
+          post: true,
         },
       });
 
@@ -154,8 +227,8 @@ class BookingService {
         include: {
           user: true,
           car: true,
-          service: true,
-          slot: true,
+          service: { include: { servicePrices: true } },
+          post: true,
         },
       });
 
@@ -181,8 +254,8 @@ class BookingService {
         include: {
           user: true,
           car: true,
-          service: true,
-          slot: true,
+          service: { include: { servicePrices: true } },
+          post: true,
         },
       });
 
@@ -207,8 +280,8 @@ class BookingService {
         include: {
           user: true,
           car: true,
-          service: true,
-          slot: true,
+          service: { include: { servicePrices: true } },
+          post: true,
         },
       });
 

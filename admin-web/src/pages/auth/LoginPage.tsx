@@ -37,7 +37,7 @@ function LoginPage() {
     <div className={styles.loginContainer}>
       <Card
         className={styles.loginCard}
-        bodyStyle={{ padding: isMobile ? 20 : 24 }}
+        styles={{ body: { padding: isMobile ? 20 : 24 } }}
       >
         <div className={styles.titleContainer}>
           <Title level={isMobile ? 3 : 2}>🚗 Панель администратора</Title>

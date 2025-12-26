@@ -1,0 +1,24 @@
+import type { IService } from './service';
+
+export interface IWashingPostServiceLink {
+  id: string;
+  postId: string;
+  serviceId: string;
+  service: IService;
+  createdAt?: string;
+}
+
+/**
+ * Моечный пост
+ */
+export interface IWashingPost {
+  id: string;
+  name: string;
+  isActive: boolean;
+  order: number;
+  services?: IWashingPostServiceLink[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+

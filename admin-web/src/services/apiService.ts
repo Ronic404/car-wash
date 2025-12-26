@@ -1,5 +1,10 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import logger from '../utils/logger';
+import type { IBooking } from '../types/booking';
+import type { IService } from '../types/service';
+import type { IWashingPost } from '../types/washingPost';
+import type { IWashingPostSchedule } from '../types/washingPostSchedule';
+import type { ITimeBlock, TimeBlockKind } from '../types/timeBlock';
 
 /**
  * Сервис для взаимодействия с API
@@ -79,7 +84,7 @@ class ApiService {
     userId?: string;
     dateFrom?: string;
     dateTo?: string;
-  }) {
+  }): Promise<IBooking[]> {
     const response = await this.client.get('/bookings', { params: filters });
     return response.data;
   }
@@ -114,15 +119,6 @@ class ApiService {
     return response.data;
   }
 
-  async createSlot(data: {
-    date: string;
-    duration?: number;
-    maxBookings?: number;
-  }) {
-    const response = await this.client.post('/slots', data);
-    return response.data;
-  }
-
   async updateSlot(id: string, data: {
     date?: string;
     duration?: number;
@@ -138,7 +134,7 @@ class ApiService {
   }
 
   // Services
-  async getServices() {
+  async getServices(): Promise<IService[]> {
     const response = await this.client.get('/services');
     return response.data;
   }
@@ -241,6 +237,82 @@ class ApiService {
   async updateCarCategoriesOrder(categories: { id: string; order: number }[]) {
     const response = await this.client.patch('/car-categories/order', { categories });
     return response.data;
+  }
+
+  // Washing Posts
+  async getWashingPosts(): Promise<IWashingPost[]> {
+    const response = await this.client.get('/washing-posts');
+    return response.data;
+  }
+
+  async getActiveWashingPosts(): Promise<IWashingPost[]> {
+    const response = await this.client.get('/washing-posts/active');
+    return response.data;
+  }
+
+  async createWashingPost(data: { name: string; order?: number; isActive?: boolean; serviceIds?: string[] }): Promise<IWashingPost> {
+    const response = await this.client.post('/washing-posts', data);
+    return response.data;
+  }
+
+  async updateWashingPost(id: string, data: { name?: string; order?: number; isActive?: boolean; serviceIds?: string[] }): Promise<IWashingPost> {
+    const response = await this.client.patch(`/washing-posts/${id}`, data);
+    return response.data;
+  }
+
+  async deleteWashingPost(id: string): Promise<void> {
+    await this.client.delete(`/washing-posts/${id}`);
+  }
+
+  // Washing Post Schedules (по дням)
+  async getWashingPostSchedules(date: string): Promise<IWashingPostSchedule[]> {
+    const response = await this.client.get('/washing-post-schedules', { params: { date } });
+    return response.data;
+  }
+
+  async upsertWashingPostSchedule(data: {
+    postId: string;
+    date: string; // YYYY-MM-DD
+    isActive: boolean;
+    workFromMinutes: number;
+    workToMinutes: number;
+  }): Promise<IWashingPostSchedule> {
+    const response = await this.client.post('/washing-post-schedules/upsert', data);
+    return response.data;
+  }
+
+  async copyWashingPostDay(data: {
+    fromDate: string; // YYYY-MM-DD
+    toDate: string; // YYYY-MM-DD
+    overwrite?: boolean;
+    copySlots?: boolean;
+  }): Promise<{ schedulesCopied: number; slotsCopied: number }> {
+    const response = await this.client.post('/washing-post-schedules/copy-day', data);
+    return response.data;
+  }
+
+  // Time blocks (admin)
+  async getTimeBlocks(filters: { dateFrom: string; dateTo: string; postId?: string }): Promise<ITimeBlock[]> {
+    const response = await this.client.get('/time-blocks', { params: filters });
+    return response.data;
+  }
+
+  async createTimeBlock(data: {
+    postId: string;
+    startAt: string;
+    endAt: string;
+    kind?: TimeBlockKind;
+    serviceId?: string | null;
+    carBrand?: string | null;
+    carModel?: string | null;
+    note?: string | null;
+  }): Promise<ITimeBlock> {
+    const response = await this.client.post('/time-blocks', data);
+    return response.data;
+  }
+
+  async deleteTimeBlock(id: string): Promise<void> {
+    await this.client.delete(`/time-blocks/${id}`);
   }
 
   // Employees

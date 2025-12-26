@@ -31,7 +31,7 @@ function DashboardPage() {
       const confirmed = bookings.filter((b) => b.status === 'CONFIRMED').length;
       const today = new Date().toDateString();
       const todayBookings = bookings.filter((b) => {
-        const bookingDate = new Date(b.slot.date).toDateString();
+        const bookingDate = new Date(b.startAt).toDateString();
         return bookingDate === today;
       }).length;
 

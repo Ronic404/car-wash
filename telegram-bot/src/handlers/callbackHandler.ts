@@ -1,8 +1,13 @@
 import { Context } from 'telegraf';
 import { Scenes } from 'telegraf';
-import { handleViewSlots, handleSelectSlot } from './slotsHandler';
-import { handleSelectCar } from './carHandler';
-import { handleSelectService, handleMyBookings } from './bookingHandler';
+import {
+  handleViewSlots,
+  handleSelectServiceForSlots,
+  handleSelectTime,
+  handleSelectCarForTime,
+  handleSelectPostForTime,
+} from './slotsHandler';
+import { handleMyBookings } from './myBookingsHandler';
 import { handleMyCars, handleDeleteCar, handleDeleteCarList } from './carsHandler';
 import { handleViewServices, handleSelectCategoryForPrice, handleViewPriceByCategory } from './servicesHandler';
 import logger from '../config/logger';
@@ -73,10 +78,33 @@ export async function handleCallback(ctx: Context) {
       return;
     }
 
-    // Выбор слота
-    if (callbackData.startsWith('select_slot_')) {
-      const slotId = callbackData.replace('select_slot_', '');
-      await handleSelectSlot(ctx, slotId);
+    // Новый поток слотов: услуга -> время -> авто
+    if (callbackData.startsWith('select_service_for_slots_')) {
+      const serviceId = callbackData.replace('select_service_for_slots_', '');
+      await handleSelectServiceForSlots(ctx, serviceId);
+      return;
+    }
+
+    if (callbackData.startsWith('select_time_')) {
+      const idx = callbackData.replace('select_time_', '');
+      await handleSelectTime(ctx, idx);
+      return;
+    }
+
+    if (callbackData.startsWith('select_post_')) {
+      const rest = callbackData.replace('select_post_', '');
+      const [groupIdx, postId] = rest.split('_');
+      if (!groupIdx || !postId) {
+        await ctx.answerCbQuery('Ошибка');
+        return;
+      }
+      await handleSelectPostForTime(ctx, groupIdx, postId);
+      return;
+    }
+
+    if (callbackData.startsWith('select_car_for_time_')) {
+      const carId = callbackData.replace('select_car_for_time_', '');
+      await handleSelectCarForTime(ctx, carId);
       return;
     }
 
@@ -93,13 +121,6 @@ export async function handleCallback(ctx: Context) {
       return;
     }
 
-    // Выбор автомобиля
-    if (callbackData.startsWith('select_car_')) {
-      const carId = callbackData.replace('select_car_', '');
-      await handleSelectCar(ctx, carId);
-      return;
-    }
-
     // Показать список автомобилей для удаления
     if (callbackData === 'delete_car_list') {
       await handleDeleteCarList(ctx);
@@ -110,16 +131,6 @@ export async function handleCallback(ctx: Context) {
     if (callbackData.startsWith('delete_car_')) {
       const carId = callbackData.replace('delete_car_', '');
       await handleDeleteCar(ctx, carId);
-      return;
-    }
-
-    // Выбор услуги
-    if (callbackData.startsWith('select_service_')) {
-      const parts = callbackData.replace('select_service_', '').split('_');
-      const serviceId = parts[0];
-      const carId = parts[1];
-      const slotId = parts[2];
-      await handleSelectService(ctx, serviceId, carId, slotId);
       return;
     }
 

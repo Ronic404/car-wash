@@ -48,7 +48,7 @@
 - **`api/src/routes/*`**: маршруты (контроллеры/роутеры).
 - **`api/src/controllers/*`**: контроллеры, формируют HTTP‑ответы.
 - **`api/src/services/*`**: бизнес‑логика, работа с Prisma.
-- **`api/prisma/schema.prisma`**: модели БД (`User`, `Car`, `Booking`, `TimeSlot`, `Service`, `CarCategory`, `ServicePrice`).
+- **`api/prisma/schema.prisma`**: модели БД (`User`, `Car`, `Booking`, `WashingPost`, `WashingPostSchedule`, `TimeBlock`, `Service`, `CarCategory`, `ServicePrice`).
 
 ### `admin-web/` (Админ‑панель)
 
@@ -84,10 +84,10 @@
 
 ### 3) Создание записи пользователем (telegram-bot → api → admin-web(SSE))
 
-1. Бот показывает доступные слоты (`GET /api/slots/available`) и сохраняет выбранный `slotId` в `ctx.session`.
-2. Бот показывает автомобили пользователя (`GET /api/cars/user/:userId`).
-3. Бот показывает услуги (`GET /api/services/active`).
-4. Бот создаёт запись (`POST /api/bookings`).
+1. Бот показывает услуги (`GET /api/services/active`).
+2. Бот подбирает доступное время под услугу (`GET /api/availability`) и сохраняет выбранные `startAt/postId` в `ctx.session`.
+3. Бот показывает автомобили пользователя (`GET /api/cars/user/:userId`).
+4. Бот создаёт запись (`POST /api/bookings/by-time`).
 5. API после создания вызывает `sseService.notifyNewBooking(...)`.
 6. Админка получает SSE `new_booking` и обновляет списки/детали.
 
@@ -107,7 +107,7 @@
 - `User 1—N Car`
 - `User 1—N Booking`
 - `Car 1—N Booking`
-- `TimeSlot 1—N Booking`
+- `WashingPost 1—N Booking`
 - `Service 1—N Booking`
 - `Service N—N CarCategory` через `ServicePrice` (цена + длительность)
 

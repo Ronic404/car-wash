@@ -1,5 +1,6 @@
 import { ICar } from './car';
 import { IUser } from './user';
+import { IWashingPost } from './washingPost';
 
 /**
  * Интерфейс для цены услуги (как приходит из API)
@@ -33,7 +34,9 @@ export interface IBooking {
   userId: string;
   carId: string;
   serviceId: string;
-  slotId: string;
+  postId: string;
+  startAt: string; // ISO
+  durationMinutes: number;
   status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
   notes?: string | null;
   createdAt?: string;
@@ -43,13 +46,7 @@ export interface IBooking {
   user: IUser;
   car: ICar;
   service: IBookingService;
-  slot: {
-    id: string;
-    date: string;
-    duration: number;
-    isAvailable: boolean;
-    maxBookings: number;
-  };
+  post: IWashingPost;
 }
 
 

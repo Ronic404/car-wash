@@ -72,6 +72,8 @@ model Service {
 
   bookings     Booking[]
   servicePrices ServicePrice[]
+  washingPostServices WashingPostService[]
+  timeBlocks  TimeBlock[]
 
   @@index([order])
   @@map("services")
@@ -96,29 +98,15 @@ model ServicePrice {
   @@map("service_prices")
 }
 
-// Временные слоты для записи
-model TimeSlot {
-  id        String   @id @default(uuid())
-  date      DateTime // Дата и время слота
-  duration  Int      @default(60) // Длительность в минутах
-  isAvailable Boolean @default(true)
-  maxBookings Int    @default(1) // Максимальное количество записей в слот
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  bookings Booking[]
-
-  @@index([date])
-  @@map("time_slots")
-}
-
 // Записи клиентов
 model Booking {
   id        String   @id @default(uuid())
   userId    String
   carId     String
   serviceId String
-  slotId    String
+  postId    String
+  startAt   DateTime
+  durationMinutes Int
   status    BookingStatus @default(PENDING)
   notes     String?  // Заметки
   createdAt DateTime @default(now())
@@ -129,11 +117,13 @@ model Booking {
   user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   car     Car       @relation(fields: [carId], references: [id], onDelete: Cascade)
   service Service   @relation(fields: [serviceId], references: [id])
-  slot    TimeSlot  @relation(fields: [slotId], references: [id])
+  post    WashingPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
-  @@index([slotId])
+  @@index([postId])
+  @@index([startAt])
+  @@unique([postId, startAt])
   @@map("bookings")
 }
 
@@ -142,6 +132,34 @@ enum BookingStatus {
   CONFIRMED  // Подтверждена
   CANCELLED  // Отменена
   COMPLETED  // Завершена
+}
+
+// Блокировка времени/ручная запись администратора (не видна клиентам, но занимает время на посту)
+model TimeBlock {
+  id        String   @id @default(uuid())
+  postId    String
+  startAt   DateTime
+  endAt     DateTime
+  kind      TimeBlockKind @default(BLOCK)
+  serviceId String?
+  carBrand  String?
+  carModel  String?
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post      WashingPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  service   Service?    @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@index([postId])
+  @@index([startAt])
+  @@index([endAt])
+  @@map("time_blocks")
+}
+
+enum TimeBlockKind {
+  BLOCK          // Блокировка (перерыв/поломка)
+  MANUAL_BOOKING // Ручная запись (клиент может быть не в базе)
 }
 
 // Сотрудники
@@ -172,5 +190,57 @@ model AdminUser {
   lastLogin DateTime?
 
   @@map("admin_users")
+}
+
+// Моечные посты
+model WashingPost {
+  id        String   @id @default(uuid())
+  name      String   // Название поста (например "Пост 1")
+  order     Int      @default(0) // Порядок отображения
+  isActive  Boolean  @default(true) // Можно временно отключить пост
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings  Booking[]
+  services  WashingPostService[]
+  schedules WashingPostSchedule[]
+  timeBlocks TimeBlock[]
+
+  @@index([order])
+  @@map("washing_posts")
+}
+
+// Услуги, доступные на конкретном моечном посту (категории авто не учитываются)
+model WashingPostService {
+  id        String   @id @default(uuid())
+  postId    String
+  serviceId String
+  createdAt DateTime @default(now())
+
+  post      WashingPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  service   Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, serviceId])
+  @@index([postId])
+  @@index([serviceId])
+  @@map("washing_post_services")
+}
+
+// Настройки моечного поста на конкретную дату (уникально на день)
+model WashingPostSchedule {
+  id              String   @id @default(uuid())
+  postId          String
+  date            DateTime // Дата (день)
+  isActive        Boolean  @default(true)
+  workFromMinutes Int      @default(540) // 09:00
+  workToMinutes   Int      @default(1080) // 18:00
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  post            WashingPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, date])
+  @@index([date])
+  @@map("washing_post_schedules")
 }
 

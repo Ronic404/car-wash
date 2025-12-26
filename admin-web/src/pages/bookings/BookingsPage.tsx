@@ -75,7 +75,7 @@ function BookingsPage() {
           grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 2, xl: 3, xxl: 3 }}
           dataSource={bookings}
           renderItem={(booking) => {
-            const slotDate = new Date(booking.slot.date).toLocaleString('ru-RU');
+            const slotDate = new Date(booking.startAt).toLocaleString('ru-RU');
             return (
               <List.Item>
                 <Link to={`/bookings/${booking.id}`} className={styles.link}>

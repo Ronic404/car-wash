@@ -3,9 +3,9 @@ import logger from '../config/logger';
 import { ICar } from '../types/car';
 import { IUser } from '../types/user';
 import { IService } from '../types/service';
-import { ISlot } from '../types/slot';
 import { IBooking } from '../types/booking';
 import { ICarCategory } from '../types/carCategory';
+import { IAvailabilityOption } from '../types/availability';
 
 /**
  * Сервис для взаимодействия с API
@@ -73,19 +73,20 @@ class ApiService {
   }
 
   /**
-   * Получение доступных слотов
+   * Получение доступного времени под услугу
    */
-  async getAvailableSlots(dateFrom: Date, dateTo: Date): Promise<ISlot[]> {
+  async getAvailability(dateFrom: Date, dateTo: Date, serviceId: string): Promise<IAvailabilityOption[]> {
     try {
-      const response = await this.client.get<ISlot[]>('/slots/available', {
+      const response = await this.client.get<IAvailabilityOption[]>('/availability', {
         params: {
           dateFrom: dateFrom.toISOString(),
           dateTo: dateTo.toISOString(),
+          serviceId,
         },
       });
       return response.data;
     } catch (error) {
-      logger.error('Ошибка получения слотов', { error, dateFrom, dateTo });
+      logger.error('Ошибка получения доступного времени', { error, dateFrom, dateTo, serviceId });
       throw error;
     }
   }
@@ -104,20 +105,21 @@ class ApiService {
   }
 
   /**
-   * Создание записи
+   * Создание записи по времени
    */
-  async createBooking(data: {
+  async createBookingByTime(data: {
     userId: string;
     carId: string;
     serviceId: string;
-    slotId: string;
+    postId: string;
+    startAt: string; // ISO
     notes?: string;
   }): Promise<IBooking> {
     try {
-      const response = await this.client.post<IBooking>('/bookings', data);
+      const response = await this.client.post<IBooking>('/bookings/by-time', data);
       return response.data;
     } catch (error: unknown) {
-      logger.error('Ошибка создания записи', { error, data });
+      logger.error('Ошибка создания записи (by-time)', { error, data });
       const errorMessage = this.getAxiosBackendErrorMessage(error);
       throw new Error(errorMessage || 'Ошибка создания записи');
     }
@@ -175,9 +177,7 @@ class ApiService {
    */
   async getUserBookings(userId: string): Promise<IBooking[]> {
     try {
-      const response = await this.client.get<IBooking[]>('/bookings', {
-        params: { userId },
-      });
+      const response = await this.client.get<IBooking[]>(`/bookings/user/${userId}`);
       return response.data;
     } catch (error) {
       logger.error('Ошибка получения записей', { error, userId });

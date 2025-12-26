@@ -16,11 +16,14 @@ class UserService {
     firstName?: string;
     lastName?: string;
     username?: string;
-  }) {
+  }): Promise<IUser> {
     try {
       // Проверяем кеш
       if (this.userCache.has(telegramData.id)) {
-        return this.userCache.get(telegramData.id);
+        const cached = this.userCache.get(telegramData.id);
+        if (cached) {
+          return cached;
+        }
       }
 
       // Вызываем API для получения/создания пользователя

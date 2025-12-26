@@ -7,12 +7,13 @@ import { getErrorMessage } from '../utils/errorUtils';
 /**
  * Схемы валидации для записей
  */
-const createBookingSchema = z.object({
+const createBookingByTimeSchema = z.object({
   body: z.object({
     userId: z.string().uuid(),
     carId: z.string().uuid(),
     serviceId: z.string().uuid(),
-    slotId: z.string().uuid(),
+    postId: z.string().uuid(),
+    startAt: z.string().datetime(),
     notes: z.string().optional(),
   }),
 });
@@ -26,17 +27,29 @@ const getBookingsSchema = z.object({
   }),
 });
 
+const getUserBookingsSchema = z.object({
+  params: z.object({
+    userId: z.string().uuid(),
+  }),
+});
+
 /**
  * Контроллер для работы с записями
  */
 class BookingController {
   /**
-   * Создание новой записи
+   * Создание записи по времени (новый поток)
    */
-  async create(req: Request, res: Response): Promise<void> {
+  async createByTime(req: Request, res: Response): Promise<void> {
     try {
-      const booking = await bookingService.createBooking(req.body);
-      // Отправляем уведомление через SSE
+      const booking = await bookingService.createBookingByTime({
+        userId: req.body.userId,
+        carId: req.body.carId,
+        serviceId: req.body.serviceId,
+        postId: req.body.postId,
+        startAt: new Date(req.body.startAt),
+        notes: req.body.notes,
+      });
       sseService.notifyNewBooking(booking);
       res.status(201).json(booking);
     } catch (error: unknown) {
@@ -76,6 +89,19 @@ class BookingController {
       res.json(bookings);
     } catch (error: unknown) {
       res.status(500).json({ error: getErrorMessage(error) });
+    }
+  }
+
+  /**
+   * Получение записей пользователя (для telegram-bot, без админ-авторизации)
+   */
+  async getByUser(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = getUserBookingsSchema.parse({ params: req.params }).params;
+      const bookings = await bookingService.getBookings({ userId });
+      res.json(bookings);
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 
@@ -134,6 +160,6 @@ class BookingController {
   }
 }
 
-export { createBookingSchema, getBookingsSchema };
+export { createBookingByTimeSchema, getBookingsSchema, getUserBookingsSchema };
 export default new BookingController();
 

@@ -1,6 +1,6 @@
 import { ICar } from './car';
 import { IService } from './service';
-import { ISlot } from './slot';
+import { IWashingPost } from './washingPost';
 
 /**
  * Интерфейс для записи
@@ -10,7 +10,9 @@ export interface IBooking {
   userId: string;
   carId: string;
   serviceId: string;
-  slotId: string;
+  postId: string;
+  startAt: string; // ISO
+  durationMinutes: number;
   status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
   notes?: string | null;
   createdAt?: string;
@@ -20,6 +22,6 @@ export interface IBooking {
   // Связанные объекты (приходят из API с include)
   car?: ICar;
   service?: IService;
-  slot?: ISlot;
+  post?: IWashingPost;
 }
 

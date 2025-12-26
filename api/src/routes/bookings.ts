@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import bookingController, { createBookingSchema, getBookingsSchema } from '../controllers/bookingController';
+import bookingController, {
+  createBookingByTimeSchema,
+  getBookingsSchema,
+  getUserBookingsSchema,
+} from '../controllers/bookingController';
 import { authenticateAdmin } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 
@@ -7,9 +11,9 @@ const router = Router();
 
 /**
  * @swagger
- * /api/bookings:
+ * /api/bookings/by-time:
  *   post:
- *     summary: Создание новой записи
+ *     summary: Создание записи по времени (услуга -> время -> пост -> авто)
  *     tags: [Bookings]
  *     requestBody:
  *       required: true
@@ -21,7 +25,8 @@ const router = Router();
  *               - userId
  *               - carId
  *               - serviceId
- *               - slotId
+ *               - postId
+ *               - startAt
  *             properties:
  *               userId:
  *                 type: string
@@ -32,18 +37,42 @@ const router = Router();
  *               serviceId:
  *                 type: string
  *                 format: uuid
- *               slotId:
+ *               postId:
  *                 type: string
  *                 format: uuid
+ *               startAt:
+ *                 type: string
+ *                 format: date-time
  *               notes:
  *                 type: string
  *     responses:
  *       201:
  *         description: Запись успешно создана
  *       400:
- *         description: Ошибка валидации или слот недоступен
+ *         description: Ошибка валидации или время недоступно
  */
-router.post('/', validate(createBookingSchema), bookingController.create);
+router.post('/by-time', validate(createBookingByTimeSchema), bookingController.createByTime);
+
+/**
+ * @swagger
+ * /api/bookings/user/{userId}:
+ *   get:
+ *     summary: Получение записей пользователя (для telegram-bot)
+ *     tags: [Bookings]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Список записей пользователя
+ *       400:
+ *         description: Ошибка валидации
+ */
+router.get('/user/:userId', validate(getUserBookingsSchema), bookingController.getByUser);
 
 /**
  * @swagger

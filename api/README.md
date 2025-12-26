@@ -58,20 +58,17 @@ npm start
 
 ### Записи
 
-- `POST /api/bookings` - Создание записи
+- `POST /api/bookings/by-time` - Создание записи по времени (client/bot)
+- `GET /api/bookings/user/:userId` - Получение записей пользователя (bot)
 - `GET /api/bookings` - Получение всех записей (с фильтрами)
 - `GET /api/bookings/:id` - Получение записи по ID
 - `PATCH /api/bookings/:id/confirm` - Подтверждение записи
 - `PATCH /api/bookings/:id/cancel` - Отмена записи
 - `PATCH /api/bookings/:id/complete` - Завершение записи
 
-### Слоты
+### Доступность времени
 
-- `GET /api/slots/available` - Получение доступных слотов
-- `GET /api/slots` - Получение всех слотов (admin)
-- `POST /api/slots` - Создание слота (admin)
-- `PATCH /api/slots/:id` - Обновление слота (admin)
-- `DELETE /api/slots/:id` - Удаление слота (admin)
+- `GET /api/availability` - Подбор доступного времени под услугу (client/bot)
 
 ### Услуги
 

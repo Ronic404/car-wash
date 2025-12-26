@@ -60,8 +60,8 @@ class UserService {
           bookings: {
             include: {
               car: true,
-              service: true,
-              slot: true,
+              service: { include: { servicePrices: true } },
+              post: true,
             },
             orderBy: {
               createdAt: 'desc',
