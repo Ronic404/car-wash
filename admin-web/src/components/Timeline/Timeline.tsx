@@ -281,7 +281,7 @@ function Timeline(props: ITimelineProps) {
                     );
 
                     return (
-                      <Tooltip key={b.id} title={title} placement="topLeft" overlayStyle={{ maxWidth: 420 }}>
+                      <Tooltip key={b.id} title={title} placement="topLeft" styles={{ root: { maxWidth: 420 } }}>
                         <div
                           className={className}
                           style={{

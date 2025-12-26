@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Layout as AntLayout, Menu, Avatar, Dropdown, Typography, Button, Tooltip } from 'antd';
+import { Layout as AntLayout, Menu, MenuProps, Avatar, Dropdown, Typography, Button, Tooltip } from 'antd';
 import {
   DashboardOutlined,
   CalendarOutlined,
@@ -15,7 +15,6 @@ import {
 import { useAuthStore } from '../store/authStore';
 import { useSSE } from '../hooks/useSSE';
 import { useScreenSize } from '../hooks/useBreakpoint';
-import type { MenuProps } from 'antd';
 import styles from './Layout.module.scss';
 
 const { Header, Sider, Content } = AntLayout;

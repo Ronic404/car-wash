@@ -82,9 +82,6 @@ function BookingsPage() {
                   <Card
                     hoverable
                     className={styles.card}
-                    actions={[
-                      <Text key="view" type="secondary">Подробнее →</Text>,
-                    ]}
                   >
                     <div className={styles.statusContainer}>
                       {getStatusTag(booking.status)}
