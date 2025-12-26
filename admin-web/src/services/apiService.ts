@@ -281,16 +281,6 @@ class ApiService {
     return response.data;
   }
 
-  async copyWashingPostDay(data: {
-    fromDate: string; // YYYY-MM-DD
-    toDate: string; // YYYY-MM-DD
-    overwrite?: boolean;
-    copySlots?: boolean;
-  }): Promise<{ schedulesCopied: number; slotsCopied: number }> {
-    const response = await this.client.post('/washing-post-schedules/copy-day', data);
-    return response.data;
-  }
-
   // Time blocks (admin)
   async getTimeBlocks(filters: { dateFrom: string; dateTo: string; postId?: string }): Promise<ITimeBlock[]> {
     const response = await this.client.get('/time-blocks', { params: filters });

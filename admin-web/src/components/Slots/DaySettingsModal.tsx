@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, DatePicker, Divider, Form, Modal, Switch, TimePicker, Typography, message, Checkbox, Select } from 'antd';
+import { Button, Divider, Form, Modal, Switch, TimePicker, Typography, message, Select } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import type { IService } from '../../types/service';
 import type { IWashingPost } from '../../types/washingPost';
@@ -56,9 +56,6 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
             serviceIds: p.services?.map((x) => x.serviceId) ?? [],
           };
         }),
-      copyFromDate: dayjs(date).subtract(1, 'day'),
-      overwrite: false,
-      copySlots: true,
     };
   }, [posts, schedulesByPost, date]);
 
@@ -121,28 +118,6 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
     }
   };
 
-  const copyFromPrevDay = async () => {
-    try {
-      const values = await form.getFieldsValue();
-      const fromDate: Dayjs = values.copyFromDate;
-      setIsSaving(true);
-      const result = await apiService.copyWashingPostDay({
-        fromDate: fromDate.format('YYYY-MM-DD'),
-        toDate: dayStr,
-        overwrite: values.overwrite,
-        copySlots: values.copySlots,
-      });
-      message.success(`Скопировано: посты=${result.schedulesCopied}, слоты=${result.slotsCopied}`);
-      onUpdated();
-      onClose();
-    } catch (error: unknown) {
-      const text = getAxiosErrorText(error) ?? (error instanceof Error ? error.message : 'Ошибка');
-      message.error(text);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   return (
     <Modal
       title={`Настройки дня: ${dayjs(date).format('DD.MM.YYYY')}`}
@@ -160,7 +135,7 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
     >
       <Form form={form} layout="vertical">
         <Typography.Text type="secondary">
-          Тут задаём часы работы постов и активность на выбранный день. Слоты создаются вручную.
+          Тут задаём часы работы постов и активность на выбранный день.
         </Typography.Text>
 
         <Divider />
@@ -233,25 +208,6 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
             </div>
           )}
         </Form.List>
-
-        <Divider />
-
-        <Typography.Text strong>Копирование</Typography.Text>
-        <Form.Item label="Откуда копировать (дата)" name="copyFromDate">
-          <DatePicker format="DD.MM.YYYY" allowClear={false} />
-        </Form.Item>
-
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-          <Form.Item name="overwrite" valuePropName="checked" style={{ marginBottom: 0 }}>
-            <Checkbox>Перезаписать день</Checkbox>
-          </Form.Item>
-          <Form.Item name="copySlots" valuePropName="checked" style={{ marginBottom: 0 }}>
-            <Checkbox>Копировать слоты</Checkbox>
-          </Form.Item>
-          <Button onClick={copyFromPrevDay} loading={isSaving}>
-            Скопировать с выбранной даты
-          </Button>
-        </div>
       </Form>
     </Modal>
   );

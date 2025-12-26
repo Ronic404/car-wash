@@ -19,15 +19,6 @@ const upsertScheduleSchema = z.object({
   }),
 });
 
-const copyDaySchema = z.object({
-  body: z.object({
-    fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    toDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    overwrite: z.boolean().optional(),
-    copySlots: z.boolean().optional(),
-  }),
-});
-
 class WashingPostScheduleController {
   async getByDate(req: Request, res: Response): Promise<void> {
     try {
@@ -53,23 +44,9 @@ class WashingPostScheduleController {
       res.status(400).json({ error: getErrorMessage(error) });
     }
   }
-
-  async copyDay(req: Request, res: Response): Promise<void> {
-    try {
-      const result = await washingPostScheduleService.copyDay({
-        fromDate: new Date(`${req.body.fromDate}T00:00:00`),
-        toDate: new Date(`${req.body.toDate}T00:00:00`),
-        overwrite: req.body.overwrite ?? false,
-        copySlots: req.body.copySlots ?? true,
-      });
-      res.json(result);
-    } catch (error: unknown) {
-      res.status(400).json({ error: getErrorMessage(error) });
-    }
-  }
 }
 
 export default new WashingPostScheduleController();
-export { getSchedulesSchema, upsertScheduleSchema, copyDaySchema };
+export { getSchedulesSchema, upsertScheduleSchema };
 
 
