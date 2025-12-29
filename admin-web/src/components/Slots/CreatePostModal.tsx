@@ -24,7 +24,7 @@ export default function CreatePostModal(props: ICreatePostModalProps) {
       setIsSaving(true);
       await apiService.createWashingPost({
         name: values.name,
-        isActive: values.isActive,
+        isActive: false,
         serviceIds: values.serviceIds,
       });
       message.success('Пост создан');
@@ -105,7 +105,7 @@ export default function CreatePostModal(props: ICreatePostModalProps) {
       <Form
         form={form}
         layout="vertical"
-        initialValues={{ isActive: true, serviceIds: [] }}
+        initialValues={{ serviceIds: [] }}
       >
         <Form.Item
           label="Название"
@@ -113,10 +113,6 @@ export default function CreatePostModal(props: ICreatePostModalProps) {
           rules={[{ required: true, message: 'Введите название поста' }]}
         >
           <Input placeholder="Например: Пост 1" />
-        </Form.Item>
-
-        <Form.Item label="Активен" name="isActive" valuePropName="checked">
-          <Switch />
         </Form.Item>
 
         <Form.Item
