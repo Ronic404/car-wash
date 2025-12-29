@@ -177,7 +177,13 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
                     rules={[{ required: true, message: 'Укажите время' }]}
                     style={{ marginBottom: 0 }}
                   >
-                    <TimePicker format="HH:mm" minuteStep={5} allowClear={false} />
+                    <TimePicker
+                      format="HH:mm"
+                      minuteStep={5}
+                      allowClear={false}
+                      showNow={false}
+                      needConfirm={false}
+                    />
                   </Form.Item>
 
                   <Form.Item
@@ -185,7 +191,13 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
                     rules={[{ required: true, message: 'Укажите время' }]}
                     style={{ marginBottom: 0 }}
                   >
-                    <TimePicker format="HH:mm" minuteStep={5} allowClear={false} />
+                    <TimePicker
+                      format="HH:mm"
+                      minuteStep={5}
+                      allowClear={false}
+                      showNow={false}
+                      needConfirm={false}
+                    />
                   </Form.Item>
 
                   <Form.Item

@@ -165,10 +165,22 @@ export default function OccupyTimeModal(props: IOccupyTimeModalProps) {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <Form.Item name="startTime" label="Начало" rules={[{ required: true, message: 'Укажите время' }]}>
-            <TimePicker format="HH:mm" minuteStep={30} allowClear={false} />
+          <TimePicker
+            format="HH:mm"
+            minuteStep={30}
+            allowClear={false}
+            showNow={false}
+            needConfirm={false}
+          />
           </Form.Item>
           <Form.Item name="endTime" label="Конец" rules={[{ required: true, message: 'Укажите время' }]}>
-            <TimePicker format="HH:mm" minuteStep={30} allowClear={false} />
+          <TimePicker
+            format="HH:mm"
+            minuteStep={30}
+            allowClear={false}
+            showNow={false}
+            needConfirm={false}
+          />
           </Form.Item>
         </div>
 
