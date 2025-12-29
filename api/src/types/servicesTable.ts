@@ -5,7 +5,6 @@ export interface IServiceTablePriceCell {
   serviceId: string;
   categoryId: string;
   price: number | null;
-  duration: number | null;
   id: string | null;
 }
 

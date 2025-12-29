@@ -45,14 +45,6 @@ function BookingDetailPage() {
     return min === max ? `${min}₽` : `от ${min}₽`;
   };
 
-  const getServiceDurationText = (b: IBooking): string => {
-    const durations = b.service.servicePrices?.map((sp) => sp.duration) || [];
-    if (durations.length === 0) return 'длительность не указана';
-    const min = Math.min(...durations);
-    const max = Math.max(...durations);
-    return min === max ? `${min} мин.` : `${min} - ${max} мин.`;
-  };
-
   const confirmMutation = useMutation({
     mutationFn: () => apiService.confirmBooking(id!),
     onSuccess: () => {
@@ -154,7 +146,7 @@ function BookingDetailPage() {
             <strong>{booking.service.name}</strong>
             {booking.service.description && ` • ${booking.service.description}`}
             <br />
-            Цена: {getServicePriceText(booking)} | Длительность: {getServiceDurationText(booking)}
+            Цена: {getServicePriceText(booking)} | Длительность: {booking.service.duration} мин.
           </Descriptions.Item>
           <Descriptions.Item label="Клиент">
             {booking.user.firstName} {booking.user.lastName}

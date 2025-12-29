@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import {
   Button,
   Input,
+  InputNumber,
   Modal,
   message,
   Popconfirm,
@@ -53,6 +54,7 @@ interface ISortableRowProps {
   prices: IServicePrice[];
   editing: boolean;
   onPriceChange: (serviceIndex: number, categoryIndex: number, price: IServicePrice) => void;
+  onDurationChange: (serviceId: string, duration: number) => void;
   onDelete: (serviceId: string) => void;
 }
 
@@ -63,6 +65,7 @@ function SortableRow({
   prices,
   editing,
   onPriceChange,
+  onDurationChange,
   onDelete,
 }: ISortableRowProps) {
   const {
@@ -106,26 +109,31 @@ function SortableRow({
           )}
         </Space>
       </td>
+      <td className={styles.durationCell}>
+        {editing ? (
+          <InputNumber
+            min={1}
+            precision={0}
+            value={service.duration}
+            onChange={(v) => {
+              if (typeof v === 'number' && v > 0) {
+                onDurationChange(service.id, v);
+              }
+            }}
+            style={{ width: '100%' }}
+            suffix="мин."
+          />
+        ) : (
+          <div style={{ padding: '8px', minHeight: '32px' }}>{service.duration} мин.</div>
+        )}
+      </td>
       {categories.map((category, categoryIndex) => (
-        <td key={category.id} colSpan={2}>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            <div className={styles.priceCell} style={{ flex: 1 }}>
-              <EditableCell
-                value={prices[categoryIndex]}
-                onChange={(value) => onPriceChange(serviceIndex, categoryIndex, value)}
-                editing={editing}
-                type="price"
-              />
-            </div>
-            <div className={styles.durationCell} style={{ flex: 1 }}>
-              <EditableCell
-                value={prices[categoryIndex]}
-                onChange={(value) => onPriceChange(serviceIndex, categoryIndex, value)}
-                editing={editing}
-                type="duration"
-              />
-            </div>
-          </div>
+        <td key={category.id}>
+          <EditableCell
+            value={prices[categoryIndex]}
+            onChange={(value) => onPriceChange(serviceIndex, categoryIndex, value)}
+            editing={editing}
+          />
         </td>
       ))}
     </tr>
@@ -159,7 +167,6 @@ function SortableHeader({ category, editing, onDelete }: ISortableHeaderProps) {
       ref={setNodeRef}
       style={style}
       className={`${styles.categoryHeader} ${styles.tableHeader}`}
-      colSpan={2}
     >
       <Space>
         {editing && (
@@ -167,7 +174,9 @@ function SortableHeader({ category, editing, onDelete }: ISortableHeaderProps) {
             <DragOutlined />
           </span>
         )}
-        <Text strong>{category.name}</Text>
+        <Text strong style={{ whiteSpace: 'nowrap' }}>
+          {category.name}
+        </Text>
         {editing && (
           <Popconfirm
             title="Удалить категорию?"
@@ -193,6 +202,7 @@ export function ServicesTable({ data }: IServicesTableProps) {
   const [editing, setEditing] = useState(false);
   const [localData, setLocalData] = useState<IServicesTable>(data);
   const [newServiceName, setNewServiceName] = useState('');
+  const [newServiceDuration, setNewServiceDuration] = useState<number>(60);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddingService, setIsAddingService] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -216,14 +226,11 @@ export function ServicesTable({ data }: IServicesTableProps) {
   const bulkUpdateMutation = useMutation({
     mutationFn: (prices: IServicePrice[]) => {
       const validPrices = prices
-        .filter(
-          (p) => p.price !== null && p.duration !== null
-        )
+        .filter((p) => p.price !== null)
         .map((p) => ({
           serviceId: p.serviceId,
           categoryId: p.categoryId,
           price: p.price as number,
-          duration: p.duration as number,
         }));
       return apiService.bulkUpdateServicePrices(validPrices);
     },
@@ -254,7 +261,7 @@ export function ServicesTable({ data }: IServicesTableProps) {
       const allPrices: IServicePrice[] = [];
       newPrices.forEach((row) => {
         row.forEach((cell) => {
-          if (cell.price !== null || cell.duration !== null) {
+          if (cell.price !== null) {
             allPrices.push(cell);
           }
         });
@@ -262,6 +269,25 @@ export function ServicesTable({ data }: IServicesTableProps) {
       debouncedSave(allPrices);
     },
     [localData, debouncedSave]
+  );
+
+  const handleDurationChange = useCallback(
+    (serviceId: string, duration: number) => {
+      setLocalData((prev) => ({
+        ...prev,
+        services: prev.services.map((s) => (s.id === serviceId ? { ...s, duration } : s)),
+      }));
+
+      apiService
+        .updateService(serviceId, { duration })
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ['services-table'] });
+        })
+        .catch(() => {
+          message.error('Ошибка при сохранении длительности');
+        });
+    },
+    [queryClient]
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -374,11 +400,16 @@ export function ServicesTable({ data }: IServicesTableProps) {
       message.warning('Введите название услуги');
       return;
     }
+    if (!Number.isFinite(newServiceDuration) || newServiceDuration <= 0) {
+      message.warning('Укажите длительность (мин.)');
+      return;
+    }
 
     try {
-      await apiService.createService({ name: newServiceName.trim() });
+      await apiService.createService({ name: newServiceName.trim(), duration: newServiceDuration });
       queryClient.invalidateQueries({ queryKey: ['services-table'] });
       setNewServiceName('');
+      setNewServiceDuration(60);
       setIsAddingService(false);
       message.success('Услуга добавлена');
     } catch (error) {
@@ -450,16 +481,28 @@ export function ServicesTable({ data }: IServicesTableProps) {
         onCancel={() => {
           setIsAddingService(false);
           setNewServiceName('');
+          setNewServiceDuration(60);
         }}
         okText="Добавить"
         cancelText="Отмена"
       >
-        <Input
-          placeholder="Название услуги"
-          value={newServiceName}
-          onChange={(e) => setNewServiceName(e.target.value)}
-          onPressEnter={handleAddService}
-        />
+        <div style={{ display: 'flex', gap: 12 }}>
+          <Input
+            placeholder="Название услуги"
+            value={newServiceName}
+            onChange={(e) => setNewServiceName(e.target.value)}
+            onPressEnter={handleAddService}
+          />
+          <InputNumber
+            min={1}
+            precision={0}
+            value={newServiceDuration}
+            onChange={(v) => setNewServiceDuration(typeof v === 'number' ? v : 60)}
+            style={{ width: 160 }}
+            placeholder="Длительность"
+            suffix="мин."
+          />
+        </div>
       </Modal>
 
       <Modal
@@ -491,6 +534,7 @@ export function ServicesTable({ data }: IServicesTableProps) {
             <thead>
               <tr>
                 <th className={styles.serviceNameCell}>Услуга</th>
+                <th className={styles.durationCell}>Длительность</th>
                 {editing ? (
                   <SortableContext
                     items={categoryIds}
@@ -507,26 +551,13 @@ export function ServicesTable({ data }: IServicesTableProps) {
                   </SortableContext>
                 ) : (
                   localData.categories.map((category) => (
-                    <th key={category.id} colSpan={2} className={styles.categoryHeader}>
-                      <Text strong>{category.name}</Text>
+                    <th key={category.id} className={styles.categoryHeader}>
+                      <Text strong style={{ whiteSpace: 'nowrap' }}>
+                        {category.name}
+                      </Text>
                     </th>
                   ))
                 )}
-              </tr>
-              <tr>
-                <th></th>
-                {localData.categories.map((category) => (
-                  <th key={category.id} colSpan={2} className={styles.categoryHeader}>
-                    <div style={{ display: 'flex', gap: '4px' }}>
-                      <div className={styles.priceCell} style={{ flex: 1 }}>
-                        Цена
-                      </div>
-                      <div className={styles.durationCell} style={{ flex: 1 }}>
-                        Длительность
-                      </div>
-                    </div>
-                  </th>
-                ))}
               </tr>
             </thead>
             <tbody>
@@ -541,6 +572,7 @@ export function ServicesTable({ data }: IServicesTableProps) {
                       prices={localData.prices[serviceIndex] || []}
                       editing={editing}
                       onPriceChange={handlePriceChange}
+                      onDurationChange={handleDurationChange}
                       onDelete={handleDeleteService}
                     />
                   ))}
@@ -551,38 +583,21 @@ export function ServicesTable({ data }: IServicesTableProps) {
                     <td className={styles.serviceNameCell}>
                       <Text>{service.name}</Text>
                     </td>
+                    <td className={styles.durationCell}>
+                      <div style={{ padding: '8px', minHeight: '32px' }}>{service.duration} мин.</div>
+                    </td>
                     {localData.categories.map((category, categoryIndex) => (
-                      <td key={category.id} colSpan={2}>
-                        <div style={{ display: 'flex', gap: '4px' }}>
-                          <div className={styles.priceCell} style={{ flex: 1 }}>
-                            <EditableCell
-                              value={localData.prices[serviceIndex]?.[categoryIndex] || {
-                                id: null,
-                                serviceId: service.id,
-                                categoryId: category.id,
-                                price: null,
-                                duration: null,
-                              }}
-                              onChange={() => {}}
-                              editing={false}
-                              type="price"
-                            />
-                          </div>
-                          <div className={styles.durationCell} style={{ flex: 1 }}>
-                            <EditableCell
-                              value={localData.prices[serviceIndex]?.[categoryIndex] || {
-                                id: null,
-                                serviceId: service.id,
-                                categoryId: category.id,
-                                price: null,
-                                duration: null,
-                              }}
-                              onChange={() => {}}
-                              editing={false}
-                              type="duration"
-                            />
-                          </div>
-                        </div>
+                      <td key={category.id}>
+                        <EditableCell
+                          value={localData.prices[serviceIndex]?.[categoryIndex] || {
+                            id: null,
+                            serviceId: service.id,
+                            categoryId: category.id,
+                            price: null,
+                          }}
+                          onChange={() => {}}
+                          editing={false}
+                        />
                       </td>
                     ))}
                   </tr>

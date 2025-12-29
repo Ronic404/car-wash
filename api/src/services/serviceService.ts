@@ -63,6 +63,7 @@ class ServiceService {
   async createService(data: {
     name: string;
     description?: string;
+    duration: number;
     order?: number;
   }) {
     try {
@@ -78,6 +79,7 @@ class ServiceService {
         data: {
           name: data.name,
           description: data.description,
+          duration: data.duration,
           order: data.order,
           isActive: true,
         },
@@ -104,6 +106,7 @@ class ServiceService {
   async updateService(id: string, data: {
     name?: string;
     description?: string;
+    duration?: number;
     order?: number;
     isActive?: boolean;
   }) {
@@ -179,7 +182,6 @@ class ServiceService {
     serviceId: string;
     categoryId: string;
     price: number;
-    duration: number;
   }) {
     try {
       const servicePrice = await prisma.servicePrice.upsert({
@@ -191,13 +193,11 @@ class ServiceService {
         },
         update: {
           price: data.price,
-          duration: data.duration,
         },
         create: {
           serviceId: data.serviceId,
           categoryId: data.categoryId,
           price: data.price,
-          duration: data.duration,
         },
         include: {
           service: true,
@@ -224,7 +224,6 @@ class ServiceService {
       serviceId: string;
       categoryId: string;
       price: number;
-      duration: number;
     }[]
   ) {
     try {
@@ -238,13 +237,11 @@ class ServiceService {
           },
           update: {
             price: update.price,
-            duration: update.duration,
           },
           create: {
             serviceId: update.serviceId,
             categoryId: update.categoryId,
             price: update.price,
-            duration: update.duration,
           },
         })
       );
@@ -339,7 +336,6 @@ class ServiceService {
             serviceId: service.id,
             categoryId: category.id,
             price: servicePrice?.price ?? null,
-            duration: servicePrice?.duration ?? null,
             id: servicePrice?.id ?? null,
           });
         });
@@ -351,6 +347,7 @@ class ServiceService {
           id: s.id,
           name: s.name,
           description: s.description,
+          duration: s.duration,
           order: s.order,
           isActive: s.isActive,
         })),

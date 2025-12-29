@@ -94,10 +94,10 @@ export async function handleViewPriceByCategory(ctx: Context, categoryId: string
 
       if (priceForCategory) {
         message += `   💵 Цена: ${priceForCategory.price}₽\n`;
-        message += `   ⏱ Длительность: ${priceForCategory.duration} мин.\n\n`;
+        message += `   ⏱ Длительность: ${service.duration} мин.\n\n`;
       } else {
         message += `   💵 Цена: не указана для данной категории\n`;
-        message += `   ⏱ Длительность: не указана\n\n`;
+        message += `   ⏱ Длительность: ${service.duration} мин.\n\n`;
       }
     });
 
@@ -151,33 +151,25 @@ export async function handleViewServices(ctx: Context) {
       
       if (servicePrices.length === 0) {
         message += `   💵 Цена: не указана\n`;
-        message += `   ⏱ Длительность: не указана\n\n`;
+        message += `   ⏱ Длительность: ${service.duration} мин.\n\n`;
       } else if (servicePrices.length === 1) {
         // Если одна цена - показываем её
         const price = servicePrices[0];
         message += `   💵 Цена: ${price.price}₽\n`;
-        message += `   ⏱ Длительность: ${price.duration} мин.\n\n`;
+        message += `   ⏱ Длительность: ${service.duration} мин.\n\n`;
       } else {
         // Если несколько цен - показываем диапазон
         const prices = servicePrices.map((sp) => sp.price);
-        const durations = servicePrices.map((sp) => sp.duration);
         const minPrice = Math.min(...prices);
         const maxPrice = Math.max(...prices);
-        const minDuration = Math.min(...durations);
-        const maxDuration = Math.max(...durations);
         
         // Форматируем цену
         const priceText = minPrice === maxPrice 
           ? `${minPrice}₽` 
           : `${minPrice}₽ - ${maxPrice}₽`;
         
-        // Форматируем длительность - если одинаковая, показываем одно значение
-        const durationText = minDuration === maxDuration
-          ? `${minDuration} мин.`
-          : `${minDuration} - ${maxDuration} мин.`;
-        
         message += `   💵 Цена: ${priceText}\n`;
-        message += `   ⏱ Длительность: ${durationText}\n\n`;
+        message += `   ⏱ Длительность: ${service.duration} мин.\n\n`;
       }
     });
 

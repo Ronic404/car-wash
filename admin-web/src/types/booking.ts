@@ -10,7 +10,6 @@ interface IServicePrice {
   serviceId: string;
   categoryId: string;
   price: number;
-  duration: number;
 }
 
 /**
@@ -20,6 +19,7 @@ interface IBookingService {
   id: string;
   name: string;
   description?: string | null;
+  duration: number;
   isActive?: boolean;
   order?: number;
   // Может быть включено отдельным include — поэтому опционально

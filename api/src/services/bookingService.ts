@@ -16,11 +16,6 @@ function overlap(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date): boolean {
   return aStart < bEnd && bStart < aEnd;
 }
 
-function getMaxServiceDurationMinutes(service: { servicePrices: { duration: number }[] }): number {
-  if (!service.servicePrices || service.servicePrices.length === 0) return 60;
-  return Math.max(...service.servicePrices.map((sp) => sp.duration));
-}
-
 /**
  * Сервис для работы с записями
  */
@@ -43,13 +38,11 @@ class BookingService {
     try {
       const service = await prisma.service.findUnique({
         where: { id: data.serviceId },
-        include: { servicePrices: true },
       });
       if (!service || !service.isActive) {
         throw new Error('Услуга недоступна');
       }
-      const durationMinutes = getMaxServiceDurationMinutes(service);
-      const endAt = addMinutes(data.startAt, durationMinutes);
+      const endAt = addMinutes(data.startAt, service.duration);
 
       // Проверяем, что услуга разрешена на посту
       const allowed = await prisma.washingPostService.findUnique({
@@ -76,7 +69,7 @@ class BookingService {
       const minutes = data.startAt.getHours() * 60 + data.startAt.getMinutes();
       if (
         minutes < schedule.workFromMinutes ||
-        minutes + durationMinutes > schedule.workToMinutes
+        minutes + service.duration > schedule.workToMinutes
       ) {
         throw new Error('Время вне часов работы поста');
       }
@@ -120,7 +113,7 @@ class BookingService {
           serviceId: data.serviceId,
           postId: data.postId,
           startAt: data.startAt,
-          durationMinutes,
+          durationMinutes: service.duration,
           notes: data.notes,
           status: 'PENDING',
         },

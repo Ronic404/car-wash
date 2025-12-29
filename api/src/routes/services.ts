@@ -49,6 +49,8 @@ router.get('/active', serviceController.getActive);
  *                         type: string
  *                       description:
  *                         type: string
+ *                       duration:
+ *                         type: integer
  *                       order:
  *                         type: integer
  *                       isActive:
@@ -79,9 +81,6 @@ router.get('/active', serviceController.getActive);
  *                           type: string
  *                         price:
  *                           type: number
- *                           nullable: true
- *                         duration:
- *                           type: integer
  *                           nullable: true
  *       401:
  *         description: Не авторизован
@@ -141,9 +140,12 @@ router.get('/:id', serviceController.getById);
  *             type: object
  *             required:
  *               - name
+ *               - duration
  *             properties:
  *               name:
  *                 type: string
+ *               duration:
+ *                 type: integer
  *               description:
  *                 type: string
  *               order:
@@ -241,7 +243,6 @@ router.delete('/:id', authenticateAdmin, serviceController.delete);
  *               - serviceId
  *               - categoryId
  *               - price
- *               - duration
  *             properties:
  *               serviceId:
  *                 type: string
@@ -251,8 +252,6 @@ router.delete('/:id', authenticateAdmin, serviceController.delete);
  *                 format: uuid
  *               price:
  *                 type: number
- *               duration:
- *                 type: integer
  *     responses:
  *       200:
  *         description: Цена успешно обновлена
@@ -293,7 +292,6 @@ router.post(
  *                     - serviceId
  *                     - categoryId
  *                     - price
- *                     - duration
  *                   properties:
  *                     serviceId:
  *                       type: string
@@ -303,8 +301,6 @@ router.post(
  *                       format: uuid
  *                     price:
  *                       type: number
- *                     duration:
- *                       type: integer
  *     responses:
  *       200:
  *         description: Цены успешно обновлены

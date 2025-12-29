@@ -17,11 +17,6 @@ function dayStart(d: Date): Date {
   return x;
 }
 
-function getMaxServiceDurationMinutes(service: { servicePrices: { duration: number }[] }): number {
-  if (!service.servicePrices || service.servicePrices.length === 0) return 60;
-  return Math.max(...service.servicePrices.map((sp) => sp.duration));
-}
-
 /**
  * Расчёт доступного времени по расписаниям постов, существующим записям и блокировкам.
  * Возвращает возможные старты с шагом 30 минут.
@@ -38,13 +33,10 @@ class AvailabilityService {
       // Длительность услуги: максимальная по категориям
       const service = await prisma.service.findUnique({
         where: { id: options.serviceId },
-        include: { servicePrices: true },
       });
       if (!service || !service.isActive) {
         return [];
       }
-      const durationMinutes = getMaxServiceDurationMinutes(service);
-
       // Собираем активные расписания по диапазону
       const schedules = await prisma.washingPostSchedule.findMany({
         where: {
@@ -127,8 +119,8 @@ class AvailabilityService {
 
         const busy = busyByPost.get(s.postId) ?? [];
 
-        while (addMinutes(cursor, durationMinutes) <= rangeEnd) {
-          const candidate: Interval = { start: cursor, end: addMinutes(cursor, durationMinutes) };
+        while (addMinutes(cursor, service.duration) <= rangeEnd) {
+          const candidate: Interval = { start: cursor, end: addMinutes(cursor, service.duration) };
 
           const hasOverlap = busy.some((x) => overlap(x, candidate));
           if (!hasOverlap) {

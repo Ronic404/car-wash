@@ -8,12 +8,6 @@ import type { TimeBlockKind } from '../../types/timeBlock';
 import apiService from '../../services/apiService';
 import { getAxiosErrorText } from '../../utils/axiosUtils';
 
-function maxDurationMinutes(service: IService): number {
-  const s = service as IService & { servicePrices?: { duration: number }[] };
-  const durations = s.servicePrices?.map((x) => x.duration) ?? [];
-  return durations.length ? Math.max(...durations) : 60;
-}
-
 interface IOccupyTimeModalProps {
   open: boolean;
   date: Date;
@@ -85,7 +79,7 @@ export default function OccupyTimeModal(props: IOccupyTimeModalProps) {
       if (serviceId && startTime) {
         const service = services.find((s) => s.id === serviceId);
         if (service) {
-          const end = startTime.add(maxDurationMinutes(service), 'minute');
+          const end = startTime.add(service.duration, 'minute');
           form.setFieldValue('endTime', end);
         }
       }

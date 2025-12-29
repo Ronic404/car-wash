@@ -6,7 +6,6 @@ interface IServicePrice {
   serviceId: string;
   categoryId: string;
   price: number;
-  duration: number;
   category?: {
     id: string;
     name: string;
@@ -20,6 +19,7 @@ export interface IService {
   id: string;
   name: string;
   description?: string | null;
+  duration: number;
   order?: number;
   isActive: boolean;
   createdAt?: string;

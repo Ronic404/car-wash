@@ -146,6 +146,7 @@ class ApiService {
 
   async createService(data: {
     name: string;
+    duration: number;
     description?: string;
     order?: number;
   }) {
@@ -155,6 +156,7 @@ class ApiService {
 
   async updateService(id: string, data: {
     name?: string;
+    duration?: number;
     description?: string;
     order?: number;
     isActive?: boolean;
@@ -171,7 +173,6 @@ class ApiService {
     serviceId: string;
     categoryId: string;
     price: number;
-    duration: number;
   }) {
     const response = await this.client.post('/services/prices', data);
     return response.data;
@@ -181,7 +182,6 @@ class ApiService {
     serviceId: string;
     categoryId: string;
     price: number;
-    duration: number;
   }[]) {
     const response = await this.client.patch('/services/prices/bulk', { prices });
     return response.data;

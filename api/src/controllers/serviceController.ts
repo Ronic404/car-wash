@@ -10,6 +10,7 @@ const createServiceSchema = z.object({
   body: z.object({
     name: z.string().min(1),
     description: z.string().optional(),
+    duration: z.number().int().positive(),
     order: z.number().int().optional(),
   }),
 });
@@ -19,7 +20,6 @@ const updateServicePriceSchema = z.object({
     serviceId: z.string().uuid(),
     categoryId: z.string().uuid(),
     price: z.number().positive(),
-    duration: z.number().int().positive(),
   }),
 });
 
@@ -30,7 +30,6 @@ const bulkUpdateServicePricesSchema = z.object({
         serviceId: z.string().uuid(),
         categoryId: z.string().uuid(),
         price: z.number().positive(),
-        duration: z.number().int().positive(),
       })
     ),
   }),
