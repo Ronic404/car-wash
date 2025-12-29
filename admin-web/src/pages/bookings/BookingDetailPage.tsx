@@ -15,7 +15,6 @@ import {
   ArrowLeftOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  CheckOutlined,
 } from '@ant-design/icons';
 import apiService from '../../services/apiService';
 import { useScreenSize } from '../../hooks/useBreakpoint';
@@ -68,19 +67,6 @@ function BookingDetailPage() {
     onError: (error: unknown) => {
       const errText = getAxiosErrorText(error);
       message.error(errText || 'Ошибка отмены');
-    },
-  });
-
-  const completeMutation = useMutation({
-    mutationFn: () => apiService.completeBooking(id!),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['booking', id] });
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      message.success('Запись завершена');
-    },
-    onError: (error: unknown) => {
-      const errText = getAxiosErrorText(error);
-      message.error(errText || 'Ошибка завершения');
     },
   });
 
@@ -187,14 +173,14 @@ function BookingDetailPage() {
           )}
           {booking.status === 'CONFIRMED' && (
             <Button
-              type="primary"
-              icon={<CheckOutlined />}
-              onClick={() => completeMutation.mutate()}
-              loading={completeMutation.isPending}
+              danger
+              icon={<CloseCircleOutlined />}
+              onClick={() => cancelMutation.mutate()}
+              loading={cancelMutation.isPending}
               size="large"
               block={isMobile}
             >
-              Завершить
+              Отменить
             </Button>
           )}
         </div>

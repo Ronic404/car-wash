@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import bookingService from '../services/bookingService';
 import sseService from '../services/sseService';
+import telegramService from '../services/telegramService';
 import { getErrorMessage } from '../utils/errorUtils';
 
 /**
@@ -125,6 +126,13 @@ class BookingController {
       const booking = await bookingService.confirmBooking(req.params.id);
       // Отправляем уведомление через SSE
       sseService.notifyBookingUpdate(booking);
+      if (booking.user.telegramId) {
+        const date = new Date(booking.startAt).toLocaleString('ru-RU');
+        await telegramService.sendMessage(
+          booking.user.telegramId,
+          `✅ Ваша запись подтверждена.\nУслуга: ${booking.service.name}\nДата и время: ${date}`
+        );
+      }
       res.json(booking);
     } catch (error: unknown) {
       res.status(400).json({ error: getErrorMessage(error) });
@@ -139,6 +147,13 @@ class BookingController {
       const booking = await bookingService.cancelBooking(req.params.id);
       // Отправляем уведомление через SSE
       sseService.notifyBookingUpdate(booking);
+      if (booking.user.telegramId) {
+        const date = new Date(booking.startAt).toLocaleString('ru-RU');
+        await telegramService.sendMessage(
+          booking.user.telegramId,
+          `⚠️ Ваша запись отменена администратором.\nУслуга: ${booking.service.name}\nДата и время: ${date}`
+        );
+      }
       res.json(booking);
     } catch (error: unknown) {
       res.status(400).json({ error: getErrorMessage(error) });

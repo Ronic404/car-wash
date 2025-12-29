@@ -209,6 +209,7 @@ API_PORT=3000
 API_URL=http://localhost:3000
 JWT_SECRET=your-secret-key-here
 LOG_FILE_PATH=./logs
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
 ```
 
 **Telegram Bot (`telegram-bot/.env`):**
