@@ -1,3 +1,5 @@
+import type { ICar } from './car';
+
 /**
  * Интерфейс для пользователя (клиент)
  */
@@ -10,6 +12,7 @@ export interface IUser {
   phone?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  cars?: ICar[];
 }
 
 

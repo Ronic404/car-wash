@@ -80,6 +80,25 @@ class UserService {
       throw error;
     }
   }
+
+  /**
+   * Получение всех пользователей с их машинами (для администратора)
+   */
+  async getUsersWithCars() {
+    try {
+      const users = await prisma.user.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+          cars: true,
+        },
+      });
+
+      return users;
+    } catch (error) {
+      logger.error('Ошибка получения списка пользователей', { error });
+      throw error;
+    }
+  }
 }
 
 export default new UserService();

@@ -5,6 +5,8 @@ import type { IService } from '../types/service';
 import type { IWashingPost } from '../types/washingPost';
 import type { IWashingPostSchedule } from '../types/washingPostSchedule';
 import type { ITimeBlock, TimeBlockKind } from '../types/timeBlock';
+import type { IUser } from '../types/user';
+import type { ICar } from '../types/car';
 
 /**
  * Сервис для взаимодействия с API
@@ -86,6 +88,18 @@ class ApiService {
     dateTo?: string;
   }): Promise<IBooking[]> {
     const response = await this.client.get('/bookings', { params: filters });
+    return response.data;
+  }
+
+  async createBookingByTime(data: {
+    userId: string;
+    carId: string;
+    serviceId: string;
+    postId: string;
+    startAt: string;
+    notes?: string | null;
+  }): Promise<IBooking> {
+    const response = await this.client.post('/bookings/by-time', data);
     return response.data;
   }
 
@@ -303,6 +317,17 @@ class ApiService {
 
   async deleteTimeBlock(id: string): Promise<void> {
     await this.client.delete(`/time-blocks/${id}`);
+  }
+
+  // Users & cars
+  async getUsers(): Promise<IUser[]> {
+    const response = await this.client.get('/users');
+    return response.data;
+  }
+
+  async getUserCars(userId: string): Promise<ICar[]> {
+    const response = await this.client.get(`/cars/user/${userId}`);
+    return response.data;
   }
 
   // Employees

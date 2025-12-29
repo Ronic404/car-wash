@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import userService from '../services/userService';
 import { getErrorMessage } from '../utils/errorUtils';
+import { authenticateAdmin } from '../middleware/auth';
 
 const router = Router();
 
@@ -65,6 +66,27 @@ router.get('/:id', async (req, res) => {
     res.json(user);
   } catch (error: unknown) {
     res.status(404).json({ error: getErrorMessage(error) });
+  }
+});
+
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Получение списка пользователей (для администратора)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Список пользователей
+ */
+router.get('/', authenticateAdmin, async (_req, res) => {
+  try {
+    const users = await userService.getUsersWithCars();
+    res.json(users);
+  } catch (error: unknown) {
+    res.status(500).json({ error: getErrorMessage(error) });
   }
 });
 
