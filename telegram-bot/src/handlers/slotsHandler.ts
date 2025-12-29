@@ -280,6 +280,41 @@ export async function handleSelectCarForTime(ctx: Context, carId: string) {
       return;
     }
 
+    ctx.session ??= {};
+    ctx.session.selectedCarId = carId;
+    ctx.session.waitingBookingNote = true;
+
+    await ctx.reply(
+      '✏️ Добавьте комментарий для администратора (до 500 символов). Отправьте текст или нажмите «Без комментария».',
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: 'Без комментария', callback_data: 'booking_note_skip' }],
+            [{ text: 'Отмена', callback_data: 'booking_note_cancel' }],
+          ],
+        },
+      }
+    );
+  } catch (error) {
+    logger.error('Ошибка создания записи (by-time) после выбора авто', { error, carId, userId: ctx.from?.id });
+    await ctx.reply('Не удалось создать запись. Попробуйте позже.');
+  }
+}
+
+export async function finalizeBookingFromSession(ctx: Context, note: string | null) {
+  try {
+    const session = ctx.session ?? {};
+    const userId = session.userId;
+    const serviceId = session.selectedServiceId ?? undefined;
+    const postId = session.selectedPostId ?? undefined;
+    const startAt = session.selectedStartAt ?? undefined;
+    const carId = session.selectedCarId ?? undefined;
+
+    if (!userId || !serviceId || !postId || !startAt || !carId) {
+      await ctx.reply('Ошибка: не хватает данных для записи. Начните заново.');
+      return;
+    }
+
     await ctx.reply('⏳ Создаю запись...');
     await apiService.createBookingByTime({
       userId,
@@ -287,19 +322,23 @@ export async function handleSelectCarForTime(ctx: Context, carId: string) {
       serviceId,
       postId,
       startAt,
+      notes: note ?? undefined,
     });
 
-    // очищаем временные данные
-    ctx.session ??= {};
-    ctx.session.availabilityOptions = null;
-    ctx.session.availabilityGroups = null;
-    ctx.session.selectedPostId = null;
-    ctx.session.selectedStartAt = null;
-    ctx.session.selectedServiceId = null;
+    ctx.session = {
+      ...session,
+      availabilityOptions: null,
+      availabilityGroups: null,
+      selectedPostId: null,
+      selectedStartAt: null,
+      selectedServiceId: null,
+      selectedCarId: null,
+      waitingBookingNote: false,
+    };
 
     await ctx.reply('✅ Запись создана и отправлена на подтверждение администратору.');
   } catch (error) {
-    logger.error('Ошибка создания записи (by-time) после выбора авто', { error, carId, userId: ctx.from?.id });
+    logger.error('Ошибка создания записи (by-time) после комментария', { error, userId: ctx.from?.id });
     await ctx.reply('Не удалось создать запись. Попробуйте позже.');
   }
 }

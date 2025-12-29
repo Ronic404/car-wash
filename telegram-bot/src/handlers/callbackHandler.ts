@@ -6,6 +6,7 @@ import {
   handleSelectTime,
   handleSelectCarForTime,
   handleSelectPostForTime,
+  finalizeBookingFromSession,
 } from './slotsHandler';
 import { handleMyBookings } from './myBookingsHandler';
 import { handleMyCars, handleDeleteCar, handleDeleteCarList } from './carsHandler';
@@ -105,6 +106,23 @@ export async function handleCallback(ctx: Context) {
     if (callbackData.startsWith('select_car_for_time_')) {
       const carId = callbackData.replace('select_car_for_time_', '');
       await handleSelectCarForTime(ctx, carId);
+      return;
+    }
+
+    if (callbackData === 'booking_note_skip') {
+      await ctx.answerCbQuery();
+      await finalizeBookingFromSession(ctx, null);
+      return;
+    }
+
+    if (callbackData === 'booking_note_cancel') {
+      await ctx.answerCbQuery('Отменено');
+      ctx.session ??= {};
+      ctx.session.waitingBookingNote = false;
+      ctx.session.selectedCarId = null;
+      await ctx.reply('Отмена ввода комментария. Выберите время и пост заново.', {
+        reply_markup: { inline_keyboard: [[{ text: '📅 Посмотреть доступные слоты', callback_data: 'view_slots' }]] },
+      });
       return;
     }
 

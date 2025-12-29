@@ -9,6 +9,8 @@ declare module 'telegraf' {
       selectedServiceId?: string | null;
       selectedPostId?: string | null;
       selectedStartAt?: string | null;
+      selectedCarId?: string | null;
+      waitingBookingNote?: boolean;
       availabilityOptions?: IAvailabilityOption[] | null;
       availabilityGroups?: Array<{
         startAt: string;
