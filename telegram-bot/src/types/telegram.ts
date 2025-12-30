@@ -1,4 +1,3 @@
-import type { Update } from 'telegraf/types';
 import type { Context } from 'telegraf';
 import type { CallbackQuery } from 'telegraf/types';
 

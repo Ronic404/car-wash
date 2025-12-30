@@ -5,6 +5,7 @@ import userService from '../services/userService';
 import logger from '../config/logger';
 import type { IAvailabilityOption } from '../types/availability';
 import type { IService } from '../types/service';
+import { safeAnswerCb } from '../utils/telegrafUtils';
 
 type IAvailabilityGroup = {
   startAt: string;
@@ -16,7 +17,7 @@ type IAvailabilityGroup = {
  */
 export async function handleViewSlots(ctx: Context) {
   try {
-    await ctx.answerCbQuery();
+    await safeAnswerCb(ctx);
 
     const telegramUser = ctx.from;
     if (!telegramUser) {
@@ -47,7 +48,7 @@ export async function handleViewSlots(ctx: Context) {
   }
 }
 
-async function buildServicesKeyboard(ctx: Context): Promise<InlineKeyboardButton[][]> {
+async function buildServicesKeyboard(_ctx: Context): Promise<InlineKeyboardButton[][]> {
   const services: IService[] = await apiService.getActiveServices();
   const buttons: InlineKeyboardButton[][] = services.map((s) => [
     { text: s.name, callback_data: `select_service_for_slots_${s.id}` },
@@ -86,7 +87,7 @@ async function askCarSelect(ctx: Context, userId: string) {
 
 export async function handleSelectServiceForSlots(ctx: Context, serviceId: string) {
   try {
-    await ctx.answerCbQuery();
+    await safeAnswerCb(ctx);
 
     const telegramUser = ctx.from;
     if (!telegramUser) {
@@ -173,7 +174,7 @@ export async function handleSelectServiceForSlots(ctx: Context, serviceId: strin
 
 export async function handleSelectTime(ctx: Context, idxRaw: string) {
   try {
-    await ctx.answerCbQuery();
+    await safeAnswerCb(ctx);
     const idx = Number(idxRaw);
     if (!Number.isInteger(idx) || idx < 0) {
       await ctx.reply('Ошибка: некорректный выбор времени.');
@@ -224,7 +225,7 @@ export async function handleSelectTime(ctx: Context, idxRaw: string) {
 
 export async function handleSelectPostForTime(ctx: Context, groupIdxRaw: string, postId: string) {
   try {
-    await ctx.answerCbQuery();
+    await safeAnswerCb(ctx);
     const groupIdx = Number(groupIdxRaw);
     if (!Number.isInteger(groupIdx) || groupIdx < 0) {
       await ctx.reply('Ошибка: некорректный выбор поста.');
@@ -268,7 +269,7 @@ export async function handleSelectPostForTime(ctx: Context, groupIdxRaw: string,
 
 export async function handleSelectCarForTime(ctx: Context, carId: string) {
   try {
-    await ctx.answerCbQuery();
+    await safeAnswerCb(ctx);
 
     const userId = ctx.session?.userId;
     const serviceId = ctx.session?.selectedServiceId ?? undefined;

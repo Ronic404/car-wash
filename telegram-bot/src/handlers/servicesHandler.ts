@@ -1,13 +1,14 @@
 import { Context } from 'telegraf';
 import apiService from '../services/apiService';
 import logger from '../config/logger';
+import { safeAnswerCb } from '../utils/telegrafUtils';
 
 /**
  * Обработчик выбора категории для просмотра точного прайса
  */
 export async function handleSelectCategoryForPrice(ctx: Context) {
   try {
-    await ctx.answerCbQuery();
+    await safeAnswerCb(ctx);
 
     const categories = await apiService.getActiveCategories();
 
@@ -47,7 +48,7 @@ export async function handleSelectCategoryForPrice(ctx: Context) {
  */
 export async function handleViewPriceByCategory(ctx: Context, categoryId: string) {
   try {
-    await ctx.answerCbQuery();
+    await safeAnswerCb(ctx);
 
     await ctx.reply('⏳ Загружаю прайс для выбранной категории...');
 
@@ -121,7 +122,7 @@ export async function handleViewPriceByCategory(ctx: Context, categoryId: string
  */
 export async function handleViewServices(ctx: Context) {
   try {
-    await ctx.answerCbQuery();
+    await safeAnswerCb(ctx);
 
     await ctx.reply('⏳ Загружаю прайс услуг...');
 

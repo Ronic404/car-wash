@@ -2,9 +2,13 @@ import { Telegraf, Scenes, Middleware, Context } from 'telegraf';
 import LocalSession = require('telegraf-session-local');
 import dotenv from 'dotenv';
 import logger from './config/logger';
-import { handleStart } from './handlers/startHandler';
+import { handleStart, handleShowMenu } from './handlers/startHandler';
 import { handleCallback } from './handlers/callbackHandler';
 import { handleMessage } from './handlers/messageHandler';
+import { handleViewSlots } from './handlers/slotsHandler';
+import { handleViewServices } from './handlers/servicesHandler';
+import { handleMyCars } from './handlers/carsHandler';
+import { handleMyBookings } from './handlers/myBookingsHandler';
 import { addCarScene } from './scenes/addCarScene';
 
 // Загружаем переменные окружения
@@ -45,9 +49,13 @@ bot.use(sessionMiddleware);
 // Это безопасное приведение, так как SceneContext расширяет Context
 bot.use(stage.middleware() as unknown as Middleware<Context>);
 
-// Обработка команды /start
+// Обработка команд
 bot.command('start', handleStart);
-
+bot.command('slots', handleViewSlots);
+bot.command('services', handleViewServices);
+bot.command('mycars', handleMyCars);
+bot.command('mybookings', handleMyBookings);
+bot.command('menu', handleShowMenu);
 // Обработка callback запросов
 bot.on('callback_query', handleCallback);
 

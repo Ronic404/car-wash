@@ -2,13 +2,14 @@ import { Context } from 'telegraf';
 import apiService from '../services/apiService';
 import userService from '../services/userService';
 import logger from '../config/logger';
+import { safeAnswerCb } from '../utils/telegrafUtils';
 
 /**
  * Обработчик просмотра автомобилей пользователя
  */
 export async function handleMyCars(ctx: Context) {
   try {
-    await ctx.answerCbQuery();
+    await safeAnswerCb(ctx);
 
     const telegramUser = ctx.from;
     if (!telegramUser) {
