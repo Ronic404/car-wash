@@ -6,6 +6,7 @@ import logger from '../config/logger';
 import type { IAvailabilityOption } from '../types/availability';
 import type { IService } from '../types/service';
 import { safeAnswerCb } from '../utils/telegrafUtils';
+import { pluralizeRu } from '../utils/stringUtils';
 
 type IAvailabilityGroup = {
   startAt: string;
@@ -108,7 +109,9 @@ export async function handleSelectServiceForSlots(ctx: Context, serviceId: strin
 
     await ctx.reply('⏳ Подбираю доступное время...');
 
-    const options: IAvailabilityOption[] = await apiService.getAvailability(today, tomorrow, serviceId);
+    const optionsRaw: IAvailabilityOption[] = await apiService.getAvailability(today, tomorrow, serviceId);
+    const nowMs = Date.now();
+    const options = optionsRaw.filter((o) => new Date(o.startAt).getTime() > nowMs);
     if (options.length === 0) {
       await ctx.reply('К сожалению, на ближайшие дни нет доступного времени под эту услугу.');
       return;
@@ -146,26 +149,21 @@ export async function handleSelectServiceForSlots(ctx: Context, serviceId: strin
     });
 
     const buttons: InlineKeyboardButton[][] = [];
-    let message = '📅 Доступное время:\n\n';
-
     Object.keys(byDate).forEach((date) => {
-      message += `📆 ${date}:\n`;
       byDate[date].forEach(({ groupIdx, group }) => {
         const time = new Date(group.startAt).toLocaleTimeString('ru-RU', {
           hour: '2-digit',
           minute: '2-digit',
         });
         const postsCount = group.posts.length;
-        const suffix = postsCount > 1 ? ` (${postsCount} поста)` : '';
-        message += `  • ${time}${suffix}\n`;
+        const suffix = postsCount > 1 ? ` (${postsCount} ${pluralizeRu(postsCount, 'место', 'места', 'мест')})` : '';
         buttons.push([{ text: `${date} ${time}${suffix}`, callback_data: `select_time_${groupIdx}` }]);
       });
-      message += '\n';
     });
 
     buttons.push([{ text: '◀️ Назад', callback_data: 'view_slots' }]);
 
-    await ctx.reply(message, { reply_markup: { inline_keyboard: buttons } });
+    await ctx.reply('📅 Выберите удобное время:', { reply_markup: { inline_keyboard: buttons } });
   } catch (error) {
     logger.error('Ошибка выбора услуги для слотов', { error, serviceId, userId: ctx.from?.id });
     await ctx.reply('Произошла ошибка. Попробуйте позже.');
@@ -202,18 +200,6 @@ export async function handleSelectTime(ctx: Context, idxRaw: string) {
     ctx.session ??= {};
     ctx.session.userId = user.id;
     ctx.session.selectedStartAt = group.startAt;
-
-    if (group.posts.length > 1) {
-      const buttons: InlineKeyboardButton[][] = group.posts.map((p) => [
-        { text: p.name, callback_data: `select_post_${idx}_${p.id}` },
-      ]);
-      buttons.push([{ text: '◀️ Назад', callback_data: 'view_slots' }]);
-
-      const time = new Date(group.startAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-      const date = new Date(group.startAt).toLocaleDateString('ru-RU');
-      await ctx.reply(`Выберите пост на ${date} ${time}:`, { reply_markup: { inline_keyboard: buttons } });
-      return;
-    }
 
     ctx.session.selectedPostId = group.posts[0]?.id;
     await askCarSelect(ctx, user.id);
