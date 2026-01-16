@@ -68,7 +68,7 @@ function Timeline(props: ITimelineProps) {
     onDateChange,
     onOccupyClick,
     onDeleteBlock,
-    startHour = 8,
+    startHour = 10,
     endHour = 20,
     stepMinutes = 30,
   } = props;
@@ -312,9 +312,6 @@ function Timeline(props: ITimelineProps) {
                           style={{
                             gridColumn: `${startCol} / ${endCol}`,
                             gridRow: row,
-                            alignSelf: 'center',
-                            justifySelf: 'stretch',
-                            margin: '0 4px',
                             zIndex: 2,
                           }}
                         >
@@ -400,9 +397,6 @@ function Timeline(props: ITimelineProps) {
                         style={{
                           gridColumn: `${startCol} / ${endCol}`,
                           gridRow: row,
-                          alignSelf: 'center',
-                          justifySelf: 'stretch',
-                          margin: '0 4px',
                           zIndex: 2,
                           cursor: onDeleteBlock ? 'pointer' : undefined,
                         }}

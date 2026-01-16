@@ -61,8 +61,8 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
             postId: p.id,
             name: p.name,
             isActive: s?.isActive ?? false,
-            workFrom: minutesToTime(s?.workFromMinutes ?? 9 * 60),
-            workTo: minutesToTime(s?.workToMinutes ?? 18 * 60),
+            workFrom: minutesToTime(s?.workFromMinutes ?? 10 * 60),
+            workTo: minutesToTime(s?.workToMinutes ?? 20 * 60),
             serviceIds: p.services?.map((x) => x.serviceId) ?? [],
           };
         }),
