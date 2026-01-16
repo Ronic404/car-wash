@@ -1,8 +1,10 @@
-import { Scenes } from 'telegraf';
+import { Context, Scenes } from 'telegraf';
 import apiService from '../services/apiService';
 import userService from '../services/userService';
 import logger from '../config/logger';
+import { ICar } from '../types/car';
 import { capitalizeFirstLetter } from '../utils/stringUtils';
+import { finalizeBookingFromSession } from '../handlers/slotsHandler';
 
 /**
  * Интерфейс для данных сцены добавления автомобиля
@@ -22,6 +24,59 @@ interface IAddCarSession extends Scenes.SceneSessionData {
  * Сцена для добавления автомобиля
  */
 export const addCarScene = new Scenes.BaseScene<Scenes.SceneContext<IAddCarSession>>('addCar');
+
+async function finalizeBookingAfterCarCreateIfNeeded(ctx: Context, car: ICar) {
+  ctx.session ??= {} as NonNullable<Context['session']>;
+  const s = ctx.session!;
+
+  const hasBookingContext = !!(s.selectedStartAt && s.selectedServiceId && s.selectedPostId);
+  if (!hasBookingContext) return false;
+
+  s.selectedCarId = car.id;
+  s.waitingBookingNote = false;
+
+  await ctx.reply(`✅ Автомобиль "${car.brand} ${car.model}" успешно добавлен!`);
+  await finalizeBookingFromSession(ctx, null);
+
+  return true;
+}
+
+// Telegraf отдаёт разные варианты SceneContext (в т.ч. с расширенной session), поэтому тип намеренно "широкий".
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function createCarAndContinue(ctx: any) {
+  // Создаем автомобиль
+  await ctx.reply('⏳ Создаю автомобиль...');
+
+  const carData = ctx.scene.session.carData;
+  const car = await apiService.createCar({
+    userId: ctx.scene.session.userId,
+    brand: capitalizeFirstLetter(carData.brand!),
+    model: carData.model!,
+    year: carData.year ?? undefined,
+    color: carData.color ? carData.color.toLowerCase() : undefined,
+    licensePlate: carData.licensePlate ?? undefined,
+  });
+
+  try {
+    const finalized = await finalizeBookingAfterCarCreateIfNeeded(ctx, car);
+    if (finalized) {
+      logger.info('Создали запись после создания авто', { carId: car.id, userId: ctx.scene.session.userId });
+      return ctx.scene.leave();
+    }
+  } catch (error) {
+    logger.error('Ошибка создания записи после создания авто', { error, carId: car.id, userId: ctx.scene.session.userId });
+    // продолжаем обычный flow (просто сообщим об авто)
+  }
+
+  await ctx.reply(`✅ Автомобиль "${car.brand} ${car.model}" успешно добавлен!`, {
+    reply_markup: {
+      inline_keyboard: [[{ text: '◀️ Главное меню', callback_data: 'back_to_menu' }]],
+    },
+  });
+
+  logger.info('Автомобиль создан через сцену', { carId: car.id, userId: ctx.scene.session.userId });
+  return ctx.scene.leave();
+}
 
 // Шаг 1: Запрос марки автомобиля
 addCarScene.enter(async (ctx) => {
@@ -105,32 +160,7 @@ addCarScene.action('skip_license_plate', async (ctx) => {
   await ctx.answerCbQuery();
   ctx.scene.session.carData.licensePlate = null;
   
-  // Создаем автомобиль
-  await ctx.reply('⏳ Создаю автомобиль...');
-
-  const carData = ctx.scene.session.carData;
-  const car = await apiService.createCar({
-    userId: ctx.scene.session.userId,
-    brand: capitalizeFirstLetter(carData.brand!),
-    model: carData.model!,
-    year: carData.year ?? undefined,
-    color: carData.color ? carData.color.toLowerCase() : undefined,
-    licensePlate: carData.licensePlate ?? undefined,
-  });
-
-  await ctx.reply(
-    `✅ Автомобиль "${car.brand} ${car.model}" успешно добавлен!`,
-    {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: '◀️ Главное меню', callback_data: 'back_to_menu' }],
-        ],
-      },
-    }
-  );
-
-  logger.info('Автомобиль создан через сцену', { carId: car.id, userId: ctx.scene.session.userId });
-  return ctx.scene.leave();
+  return createCarAndContinue(ctx);
 });
 
 // Шаг 2: Получение марки
@@ -212,31 +242,7 @@ addCarScene.on('text', async (ctx) => {
     if (carData.licensePlate === undefined) {
       carData.licensePlate = text.trim();
 
-      // Создаем автомобиль
-      await ctx.reply('⏳ Создаю автомобиль...');
-
-      const car = await apiService.createCar({
-        userId: ctx.scene.session.userId,
-        brand: capitalizeFirstLetter(carData.brand!),
-        model: carData.model!,
-        year: carData.year ?? undefined,
-        color: carData.color ? carData.color.toLowerCase() : undefined,
-        licensePlate: carData.licensePlate ?? undefined,
-      });
-
-      await ctx.reply(
-        `✅ Автомобиль "${car.brand} ${car.model}" успешно добавлен!`,
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: '◀️ Главное меню', callback_data: 'back_to_menu' }],
-            ],
-          },
-        }
-      );
-
-      logger.info('Автомобиль создан через сцену', { carId: car.id, userId: ctx.scene.session.userId });
-      return ctx.scene.leave();
+      return createCarAndContinue(ctx);
     }
   } catch (error) {
     logger.error('Ошибка обработки ввода данных автомобиля в сцене', { error, userId: ctx.from?.id });
@@ -250,4 +256,3 @@ addCarScene.command('start', async (ctx) => {
   await ctx.reply('Добавление автомобиля отменено.');
   return await ctx.scene.leave();
 });
-
