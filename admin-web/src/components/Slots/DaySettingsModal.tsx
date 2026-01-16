@@ -6,6 +6,7 @@ import type { IWashingPost } from '../../types/washingPost';
 import type { IWashingPostSchedule } from '../../types/washingPostSchedule';
 import apiService from '../../services/apiService';
 import { getAxiosErrorText } from '../../utils/axiosUtils';
+import { useScreenSize } from '../../hooks/useBreakpoint';
 
 function minutesToTime(minutes: number): Dayjs {
   const h = Math.floor(minutes / 60);
@@ -16,6 +17,14 @@ function minutesToTime(minutes: number): Dayjs {
 function timeToMinutes(value: Dayjs): number {
   return value.hour() * 60 + value.minute();
 }
+
+const timePickerProps = {
+  format: 'HH:mm',
+  minuteStep: 5,
+  allowClear: false,
+  showNow: false,
+  needConfirm: false,
+} as const;
 
 interface IDaySettingsModalProps {
   open: boolean;
@@ -31,6 +40,7 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
   const [form] = Form.useForm();
   const [isSaving, setIsSaving] = useState(false);
   const [services, setServices] = useState<IService[]>([]);
+  const { isMobile } = useScreenSize();
 
   const dayStr = useMemo(() => dayjs(date).format('YYYY-MM-DD'), [date]);
 
@@ -57,7 +67,7 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
           };
         }),
     };
-  }, [posts, schedulesByPost, date]);
+  }, [posts, schedulesByPost]);
 
   useEffect(() => {
     if (!open) return;
@@ -148,7 +158,7 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
                   key={field.key}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 120px 140px 140px 1fr',
+                    gridTemplateColumns: isMobile ? '1fr' : '1fr 120px 140px 140px 1fr',
                     gap: 8,
                     alignItems: 'center',
                   }}
@@ -168,37 +178,63 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
                     </Form.Item>
                   </div>
 
-                  <Form.Item name={[field.name, 'isActive']} valuePropName="checked" style={{ marginBottom: 0 }}>
-                    <Switch />
-                  </Form.Item>
+                  {isMobile ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                      <Form.Item name={[field.name, 'isActive']} valuePropName="checked" style={{ marginBottom: 0 }}>
+                        <Switch />
+                      </Form.Item>
 
-                  <Form.Item
-                    name={[field.name, 'workFrom']}
-                    rules={[{ required: true, message: 'Укажите время' }]}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <TimePicker
-                      format="HH:mm"
-                      minuteStep={5}
-                      allowClear={false}
-                      showNow={false}
-                      needConfirm={false}
-                    />
-                  </Form.Item>
+                      <Form.Item
+                        name={[field.name, 'workFrom']}
+                        rules={[{ required: true, message: 'Укажите время' }]}
+                        style={{ marginBottom: 0 }}
+                        label="С"
+                      >
+                        <TimePicker
+                          {...timePickerProps}
+                          style={{ width: 120 }}
+                        />
+                      </Form.Item>
 
-                  <Form.Item
-                    name={[field.name, 'workTo']}
-                    rules={[{ required: true, message: 'Укажите время' }]}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <TimePicker
-                      format="HH:mm"
-                      minuteStep={5}
-                      allowClear={false}
-                      showNow={false}
-                      needConfirm={false}
-                    />
-                  </Form.Item>
+                      <Form.Item
+                        name={[field.name, 'workTo']}
+                        rules={[{ required: true, message: 'Укажите время' }]}
+                        style={{ marginBottom: 0 }}
+                        label="До"
+                      >
+                        <TimePicker
+                          {...timePickerProps}
+                          style={{ width: 120 }}
+                        />
+                      </Form.Item>
+                    </div>
+                  ) : (
+                    <>
+                      <Form.Item name={[field.name, 'isActive']} valuePropName="checked" style={{ marginBottom: 0 }}>
+                        <Switch />
+                      </Form.Item>
+
+                      <Form.Item
+                        name={[field.name, 'workFrom']}
+                        rules={[{ required: true, message: 'Укажите время' }]}
+                        style={{ marginBottom: 0 }}
+                      >
+                        <TimePicker
+                          {...timePickerProps}
+                        />
+                      </Form.Item>
+
+                      <Form.Item
+                        name={[field.name, 'workTo']}
+                        rules={[{ required: true, message: 'Укажите время' }]}
+                        style={{ marginBottom: 0 }}
+                      >
+                        <TimePicker
+                          {...timePickerProps}
+                        />
+                      </Form.Item>
+                    </>
+                  )}
 
                   <Form.Item
                     name={[field.name, 'serviceIds']}
@@ -209,6 +245,7 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
                       mode="multiple"
                       placeholder="Услуги"
                       optionFilterProp="label"
+                      style={isMobile ? { width: '100%' } : undefined}
                       options={services
                         .filter((s) => s.isActive)
                         .sort((a, b) => a.order - b.order)

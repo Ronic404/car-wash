@@ -12,11 +12,13 @@ import DaySettingsModal from '../../components/Slots/DaySettingsModal';
 import OccupyTimeModal from '../../components/Slots/OccupyTimeModal';
 import apiService from '../../services/apiService';
 import { getAxiosErrorText } from '../../utils/axiosUtils';
+import { useScreenSize } from '../../hooks/useBreakpoint';
 import styles from './SlotsPage.module.scss';
 
 const { Title } = Typography;
 
 function SlotsPage() {
+  const { isMobile } = useScreenSize();
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -102,13 +104,19 @@ function SlotsPage() {
   };
 
   return (
-    <div>
-      <Title level={2}>Управление слотами</Title>
+    <div className={styles.page}>
+      <Title level={isMobile ? 3 : 2} className={styles.title}>
+        Управление слотами
+      </Title>
 
-      <Space style={{ marginBottom: 16 }}>
-        <Button onClick={() => setIsPostModalOpen(true)}>Посты</Button>
-        <Button onClick={() => setIsDaySettingsOpen(true)}>Настройки дня</Button>
-        <Button type="primary" onClick={() => openOccupyModal()}>
+      <Space wrap className={styles.actions}>
+        <Button size={isMobile ? 'middle' : 'middle'} onClick={() => setIsPostModalOpen(true)}>
+          Посты
+        </Button>
+        <Button size={isMobile ? 'middle' : 'middle'} onClick={() => setIsDaySettingsOpen(true)}>
+          Настройки дня
+        </Button>
+        <Button size={isMobile ? 'middle' : 'middle'} type="primary" onClick={() => openOccupyModal()}>
           Занять слот
         </Button>
       </Space>

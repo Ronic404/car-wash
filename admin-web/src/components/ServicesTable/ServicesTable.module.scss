@@ -19,22 +19,13 @@
 .table th {
   background-color: #fafafa;
   font-weight: 600;
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
 .table th:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 11;
   background-color: #fafafa;
 }
 
 .table td:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 9;
   background-color: #fff;
 }
 
@@ -105,3 +96,12 @@
   margin-left: 8px;
 }
 
+@media (max-width: 768px) {
+  .controls {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+}
