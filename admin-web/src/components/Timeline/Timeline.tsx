@@ -1,13 +1,16 @@
-import { useMemo, type MouseEvent } from 'react';
+import { useMemo } from 'react';
 import { Button, DatePicker, Tooltip, Typography, Tag, Popconfirm, Popover } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
+
 import type { IWashingPost } from '../../types/washingPost';
 import type { IWashingPostSchedule } from '../../types/washingPostSchedule';
 import type { IBooking } from '../../types/booking';
 import type { ITimeBlock } from '../../types/timeBlock';
-import styles from './Timeline.module.scss';
+import { pluralizeRu } from '../../utils/stringUtils';
 import { generateTimeMarks } from '../../utils/timelineUtils';
+
+import styles from './Timeline.module.scss';
 
 const { Text } = Typography;
 
@@ -37,6 +40,21 @@ function getBookingStatusText(status: string): string {
       return 'Завершена';
     default:
       return status;
+  }
+}
+
+function getBookingStatusColor(status: IBooking['status']): string {
+  switch (status) {
+    case 'PENDING':
+      return 'orange';
+    case 'CONFIRMED':
+      return 'green';
+    case 'CANCELLED':
+      return 'red';
+    case 'COMPLETED':
+      return 'blue';
+    default:
+      return 'default';
   }
 }
 
@@ -90,22 +108,8 @@ function Timeline(props: ITimelineProps) {
   const timeColumnsCount = Math.max(1, timeMarks.length - 1);
   const colTemplate = useMemo(() => {
     // 1-я колонка — названия постов, остальные — интервалы времени
-    return `220px repeat(${timeColumnsCount}, minmax(48px, 1fr))`;
+    return `220px repeat(${timeColumnsCount}, minmax(64px, 1fr))`;
   }, [timeColumnsCount]);
-
-  const handleRowClick = (postId: string, e: MouseEvent<HTMLDivElement>) => {
-    if (!onOccupyClick) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const colWidth = rect.width / timeColumnsCount;
-    if (colWidth <= 0) return;
-    const idx = Math.max(0, Math.min(timeColumnsCount - 1, Math.floor(x / colWidth)));
-    const minutes = idx * stepMinutes;
-    const startAt = new Date(
-      day.getTime() + (computedHours.startHour * 60 + minutes) * 60 * 1000
-    );
-    onOccupyClick({ postId, startAt });
-  };
 
   const rowTemplate = useMemo(() => {
     // 1-я строка — времена, остальные — посты
@@ -168,7 +172,7 @@ function Timeline(props: ITimelineProps) {
         </div>
 
         <Text type="secondary">
-          {posts.length} пост(ов), интервал {String(computedHours.startHour).padStart(2, '0')}:00–{String(computedHours.endHour).padStart(2, '0')}:00
+          {posts.length} {pluralizeRu(posts.length, 'пост', 'поста', 'постов')}, интервал {String(computedHours.startHour).padStart(2, '0')}:00–{String(computedHours.endHour).padStart(2, '0')}:00
         </Text>
       </div>
 
@@ -203,7 +207,7 @@ function Timeline(props: ITimelineProps) {
             // По правилам: пока администратор явно не включил пост на конкретный день (расписанием),
             // считаем его неактивным для этого дня.
             const dayActive = schedule?.isActive ?? false;
-            const hoursText = schedule
+            const hoursText = dayActive && schedule
               ? `${String(Math.floor(schedule.workFromMinutes / 60)).padStart(2, '0')}:${String(schedule.workFromMinutes % 60).padStart(2, '0')}–${String(Math.floor(schedule.workToMinutes / 60)).padStart(2, '0')}:${String(schedule.workToMinutes % 60).padStart(2, '0')}`
               : '';
 
@@ -218,14 +222,33 @@ function Timeline(props: ITimelineProps) {
                   {hoursText && <Tag>{hoursText}</Tag>}
                 </div>
 
-                {/* Empty background cells */}
-                {Array.from({ length: timeColumnsCount }).map((_, colIdx) => (
-                  <div
-                    key={`${post.id}-bg-${colIdx}`}
-                    className={styles.cell}
-                    style={{ gridColumn: colIdx + 2, gridRow: row }}
-                  />
-                ))}
+                {Array.from({ length: timeColumnsCount }).map((_, colIdx) => {
+                  const cellStartMinutes = computedHours.startHour * 60 + colIdx * stepMinutes;
+                  const scheduleAllows =
+                    dayActive &&
+                    schedule &&
+                    cellStartMinutes >= schedule.workFromMinutes &&
+                    cellStartMinutes < schedule.workToMinutes;
+
+                  const handleCellClick = () => {
+                    if (!onOccupyClick || !scheduleAllows) return;
+                    const startAt = new Date(day.getTime() + cellStartMinutes * 60 * 1000);
+                    onOccupyClick({ postId: post.id, startAt });
+                  };
+
+                  return (
+                    <div
+                      key={`${post.id}-bg-${colIdx}`}
+                      className={`${styles.cell} ${!scheduleAllows ? styles.disabledCell : ''}`}
+                      style={{
+                        gridColumn: colIdx + 2,
+                        gridRow: row,
+                        cursor: onOccupyClick && scheduleAllows ? 'crosshair' : undefined,
+                      }}
+                      onClick={onOccupyClick && scheduleAllows ? handleCellClick : undefined}
+                    />
+                  );
+                })}
 
                 {/* Slot blocks */}
                 {(bookingsByPostId.get(post.id) ?? [])
@@ -250,31 +273,33 @@ function Timeline(props: ITimelineProps) {
                     ].join(' ');
 
                     const title = (
-                      <div>
+                      <div style={{ color: '#fff' }}>
                         <div>
-                          <Text strong>{start.toLocaleString('ru-RU')}</Text>
+                          <Text strong style={{ color: 'inherit' }}>
+                            {start.toLocaleString('ru-RU')}
+                          </Text>
                           <div>
-                            <Text type="secondary">
+                            <Text style={{ color: 'rgba(255,255,255,0.75)' }}>
                               До: {end.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
                             </Text>
                           </div>
                         </div>
                         <div style={{ marginTop: 8 }}>
-                          <Tag>{getBookingStatusText(b.status)}</Tag>
+                          <Tag color={getBookingStatusColor(b.status)}>{getBookingStatusText(b.status)}</Tag>
                           <div>
-                            <Text>
+                            <Text style={{ color: 'inherit' }}>
                               {b.user?.firstName ?? ''} {b.user?.lastName ?? ''}{' '}
                               {b.user?.phone ? `(${b.user.phone})` : ''}
                             </Text>
                           </div>
                           <div>
-                            <Text type="secondary">
+                            <Text style={{ color: 'rgba(255,255,255,0.75)' }}>
                               {b.car?.brand ?? ''} {b.car?.model ?? ''}{' '}
                               {b.car?.licensePlate ? `(${b.car.licensePlate})` : ''}
                             </Text>
                           </div>
                           <div>
-                            <Text type="secondary">{b.service?.name}</Text>
+                            <Text style={{ color: 'rgba(255,255,255,0.75)' }}>{b.service?.name}</Text>
                           </div>
                         </div>
                       </div>
@@ -298,22 +323,6 @@ function Timeline(props: ITimelineProps) {
                       </Tooltip>
                     );
                   })}
-
-                {/* Click-to-occupy overlay (по клику по свободному месту) */}
-                {onOccupyClick && dayActive && (
-                  <div
-                    onClick={(e) => handleRowClick(post.id, e)}
-                    style={{
-                      gridColumn: `2 / ${timeColumnsCount + 2}`,
-                      gridRow: row,
-                      alignSelf: 'stretch',
-                      justifySelf: 'stretch',
-                      zIndex: 0,
-                      cursor: 'crosshair',
-                      background: 'transparent',
-                    }}
-                  />
-                )}
 
                 {(blocksByPostId.get(post.id) ?? []).map((bl) => {
                   const start = new Date(bl.startAt);

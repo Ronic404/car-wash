@@ -17,7 +17,16 @@ const queryClient = new QueryClient({
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <ConfigProvider locale={ruRU}>
+  <ConfigProvider
+    locale={ruRU}
+    theme={{
+      token: {
+        // Tooltip / Popover background should be solid (default is semi-transparent)
+        colorBgSpotlight: '#111827', // slate-900
+        colorTextLightSolid: '#FFFFFF',
+      },
+    }}
+  >
     <QueryClientProvider client={queryClient}>
       <BrowserRouter
         future={{
