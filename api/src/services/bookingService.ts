@@ -33,7 +33,8 @@ class BookingService {
     serviceId: string;
     postId: string;
     startAt: Date;
-    notes?: string;
+    notes?: string | null;
+    confirmImmediately?: boolean;
   }) {
     try {
       const service = await prisma.service.findUnique({
@@ -115,7 +116,8 @@ class BookingService {
           startAt: data.startAt,
           durationMinutes: service.duration,
           notes: data.notes,
-          status: 'PENDING',
+          status: data.confirmImmediately ? 'CONFIRMED' : 'PENDING',
+          ...(data.confirmImmediately ? { confirmedAt: new Date() } : {}),
         },
         include: {
           user: true,

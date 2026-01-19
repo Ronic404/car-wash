@@ -144,7 +144,7 @@ export default function OccupyTimeModal(props: IOccupyTimeModalProps) {
 
       setIsSaving(true);
       if (kind === 'BOOKING') {
-        await apiService.createBookingByTime({
+        await apiService.createAdminBookingByTime({
           userId: userId!,
           carId: carId!,
           serviceId: serviceId!,

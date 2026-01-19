@@ -103,6 +103,18 @@ class ApiService {
     return response.data;
   }
 
+  async createAdminBookingByTime(data: {
+    userId: string;
+    carId: string;
+    serviceId: string;
+    postId: string;
+    startAt: string;
+    notes?: string | null;
+  }): Promise<IBooking> {
+    const response = await this.client.post('/bookings/by-time/admin', data);
+    return response.data;
+  }
+
   async getBookingById(id: string) {
     const response = await this.client.get(`/bookings/${id}`);
     return response.data;

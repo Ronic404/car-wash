@@ -55,6 +55,64 @@ router.post('/by-time', validate(createBookingByTimeSchema), bookingController.c
 
 /**
  * @swagger
+ * /api/bookings/by-time/admin:
+ *   post:
+ *     summary: Создание записи администратором по времени (сразу подтверждена)
+ *     description: |
+ *       Создаёт запись через админ-панель и сразу выставляет статус CONFIRMED (confirmedAt заполняется автоматически).
+ *       Используйте этот endpoint для записей, созданных администратором. Записи клиентов через бот создавайте через `/api/bookings/by-time` (они будут PENDING).
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - carId
+ *               - serviceId
+ *               - postId
+ *               - startAt
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *               carId:
+ *                 type: string
+ *                 format: uuid
+ *               serviceId:
+ *                 type: string
+ *                 format: uuid
+ *               postId:
+ *                 type: string
+ *                 format: uuid
+ *               startAt:
+ *                 type: string
+ *                 format: date-time
+ *               notes:
+ *                 type: string
+ *                 nullable: true
+ *     responses:
+ *       201:
+ *         description: Запись успешно создана и подтверждена (CONFIRMED)
+ *       400:
+ *         description: Ошибка валидации или время недоступно
+ *       401:
+ *         description: Не авторизован
+ */
+// Создание записи администратором (сразу подтверждена)
+router.post(
+  '/by-time/admin',
+  authenticateAdmin,
+  validate(createBookingByTimeSchema),
+  bookingController.createByTimeAdmin
+);
+
+/**
+ * @swagger
  * /api/bookings/user/{userId}:
  *   get:
  *     summary: Получение записей пользователя (для telegram-bot)

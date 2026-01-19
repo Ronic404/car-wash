@@ -15,7 +15,7 @@ const createBookingByTimeSchema = z.object({
     serviceId: z.string().uuid(),
     postId: z.string().uuid(),
     startAt: z.string().datetime(),
-    notes: z.string().optional(),
+    notes: z.string().nullable().optional(),
   }),
 });
 
@@ -50,6 +50,27 @@ class BookingController {
         postId: req.body.postId,
         startAt: new Date(req.body.startAt),
         notes: req.body.notes,
+      });
+      sseService.notifyNewBooking(booking);
+      res.status(201).json(booking);
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
+    }
+  }
+
+  /**
+   * Создание записи администратором: сразу CONFIRMED (без ручного подтверждения)
+   */
+  async createByTimeAdmin(req: Request, res: Response): Promise<void> {
+    try {
+      const booking = await bookingService.createBookingByTime({
+        userId: req.body.userId,
+        carId: req.body.carId,
+        serviceId: req.body.serviceId,
+        postId: req.body.postId,
+        startAt: new Date(req.body.startAt),
+        notes: req.body.notes,
+        confirmImmediately: true,
       });
       sseService.notifyNewBooking(booking);
       res.status(201).json(booking);
