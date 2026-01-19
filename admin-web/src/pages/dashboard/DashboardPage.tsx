@@ -20,9 +20,15 @@ function DashboardPage() {
     today: 0,
   });
 
+  const dateFrom = (() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString();
+  })();
+
   const { data: bookings, isLoading } = useQuery<IBooking[]>({
-    queryKey: ['bookings'],
-    queryFn: () => apiService.getBookings(),
+    queryKey: ['bookings', 'from', dateFrom],
+    queryFn: () => apiService.getBookings({ dateFrom }),
   });
 
   useEffect(() => {

@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Card, Tag, Tabs, List, Typography, Spin, Empty } from 'antd';
+import { Card, Tag, Tabs, List, Typography, Spin, Empty, Switch, Space, DatePicker } from 'antd';
 import {
   CarOutlined,
   UserOutlined,
   PhoneOutlined,
   CalendarOutlined,
 } from '@ant-design/icons';
+import dayjs, { type Dayjs } from 'dayjs';
 import apiService from '../../services/apiService';
 import styles from './BookingsPage.module.scss';
 import type { IBooking } from '../../types/booking';
@@ -17,10 +18,36 @@ const { Text, Title } = Typography;
 function BookingsPage() {
   const [searchParams] = useSearchParams();
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
+  const [showPast, setShowPast] = useState(false);
+  const [historyRange, setHistoryRange] = useState<[Dayjs, Dayjs] | null>(() => {
+    const to = dayjs().endOf('day');
+    const from = dayjs().subtract(30, 'day').startOf('day');
+    return [from, to];
+  });
+
+  const { dateFrom, dateTo } = useMemo((): { dateFrom?: string; dateTo?: string } => {
+    if (!showPast) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return { dateFrom: d.toISOString() };
+    }
+
+    if (!historyRange) return {};
+    const [from, to] = historyRange;
+    return {
+      dateFrom: from.startOf('day').toDate().toISOString(),
+      dateTo: to.endOf('day').toDate().toISOString(),
+    };
+  }, [showPast, historyRange]);
 
   const { data: bookings, isLoading } = useQuery<IBooking[]>({
-    queryKey: ['bookings', statusFilter],
-    queryFn: () => apiService.getBookings(statusFilter !== 'all' ? { status: statusFilter } : undefined),
+    queryKey: ['bookings', statusFilter, showPast, dateFrom, dateTo],
+    queryFn: () =>
+      apiService.getBookings({
+        ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
+        ...(dateFrom ? { dateFrom } : {}),
+        ...(dateTo ? { dateTo } : {}),
+      }),
   });
 
   const getServicePriceText = (booking: IBooking): string => {
@@ -60,6 +87,21 @@ function BookingsPage() {
   return (
     <div>
       <Title level={2}>Записи</Title>
+
+      <Space style={{ marginTop: 12 }} wrap>
+        <Switch checked={showPast} onChange={setShowPast} />
+        <Text type="secondary">Показывать прошедшие</Text>
+
+        {showPast && (
+          <DatePicker.RangePicker
+            allowClear
+            value={historyRange}
+            onChange={(value) => setHistoryRange(value as [Dayjs, Dayjs] | null)}
+            format="DD.MM.YYYY"
+            placeholder={['С', 'По']}
+          />
+        )}
+      </Space>
 
       <Tabs
         activeKey={statusFilter}
