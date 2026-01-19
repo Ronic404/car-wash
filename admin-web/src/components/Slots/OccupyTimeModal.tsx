@@ -208,13 +208,15 @@ export default function OccupyTimeModal(props: IOccupyTimeModalProps) {
           />
         </Form.Item>
 
-        <Form.Item
-          name="serviceId"
-          label="Услуга"
-          rules={[{ required: currentKind === 'BOOKING', message: 'Выберите услугу' }]}
-        >
-          <Select allowClear placeholder="Выберите услугу" options={serviceOptions} />
-        </Form.Item>
+        {currentKind !== 'BLOCK' && (
+          <Form.Item
+            name="serviceId"
+            label="Услуга"
+            rules={[{ required: true, message: 'Выберите услугу' }]}
+          >
+            <Select allowClear placeholder="Выберите услугу" options={serviceOptions} />
+          </Form.Item>
+        )}
 
         {currentKind === 'BOOKING' && (
           <>

@@ -9,6 +9,16 @@ function addMinutes(d: Date, minutes: number): Date {
   return new Date(d.getTime() + minutes * 60 * 1000);
 }
 
+function dayStart(d: Date): Date {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function minutesFromDayStart(d: Date): number {
+  return d.getHours() * 60 + d.getMinutes();
+}
+
 /**
  * Сервис для блокировок времени/ручных записей
  */
@@ -47,6 +57,32 @@ class TimeBlockService {
     try {
       if (data.endAt <= data.startAt) {
         throw new Error('endAt должен быть больше startAt');
+      }
+
+      const now = new Date();
+      if (data.startAt.getTime() < now.getTime()) {
+        throw new Error('Нельзя занимать время в прошлом');
+      }
+
+      const day = dayStart(data.startAt);
+      if (dayStart(data.endAt).getTime() !== day.getTime()) {
+        throw new Error('Блокировка должна быть в пределах одного дня');
+      }
+
+      const schedule = await prisma.washingPostSchedule.findUnique({
+        where: { postId_date: { postId: data.postId, date: day } },
+      });
+      if (!schedule) {
+        throw new Error('Пост недоступен в выбранный день');
+      }
+      if (!schedule.isActive) {
+        throw new Error('Пост неактивен в выбранный день');
+      }
+
+      const startM = minutesFromDayStart(data.startAt);
+      const endM = minutesFromDayStart(data.endAt);
+      if (startM < schedule.workFromMinutes || endM > schedule.workToMinutes) {
+        throw new Error('Время вне часов работы поста');
       }
 
       // Проверка пересечений с существующими блокировками

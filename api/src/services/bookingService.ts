@@ -37,6 +37,11 @@ class BookingService {
     confirmImmediately?: boolean;
   }) {
     try {
+      const now = new Date();
+      if (data.startAt.getTime() < now.getTime()) {
+        throw new Error('Нельзя создать запись в прошлом');
+      }
+
       const service = await prisma.service.findUnique({
         where: { id: data.serviceId },
       });
