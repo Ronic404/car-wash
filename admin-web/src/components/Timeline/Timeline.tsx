@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, DatePicker, Tooltip, Typography, Tag, Popconfirm, Popover } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
@@ -73,11 +73,28 @@ function Timeline(props: ITimelineProps) {
     stepMinutes = 30,
   } = props;
 
+  // Нужен, чтобы "прошедшее время" дизейблилось даже без других перерисовок.
+  const [nowTs, setNowTs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => setNowTs(Date.now()), 30_000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
   const day = useMemo(() => {
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
     return d;
   }, [date]);
+
+  const todayStartTs = useMemo(() => {
+    const t = new Date(nowTs);
+    t.setHours(0, 0, 0, 0);
+    return t.getTime();
+  }, [nowTs]);
+
+  const isPastDay = day.getTime() < todayStartTs;
+  const isToday = day.getTime() === todayStartTs;
 
   const schedulesByPostId = useMemo(() => {
     const map = new Map<string, IWashingPostSchedule>();
@@ -224,28 +241,31 @@ function Timeline(props: ITimelineProps) {
 
                 {Array.from({ length: timeColumnsCount }).map((_, colIdx) => {
                   const cellStartMinutes = computedHours.startHour * 60 + colIdx * stepMinutes;
+                  const cellStartAt = new Date(day.getTime() + cellStartMinutes * 60 * 1000);
+                  const isPastCell = isPastDay || (isToday && cellStartAt.getTime() < nowTs);
                   const scheduleAllows =
                     dayActive &&
                     schedule &&
                     cellStartMinutes >= schedule.workFromMinutes &&
                     cellStartMinutes < schedule.workToMinutes;
 
+                  const canOccupy = Boolean(onOccupyClick) && scheduleAllows && !isPastCell;
+
                   const handleCellClick = () => {
-                    if (!onOccupyClick || !scheduleAllows) return;
-                    const startAt = new Date(day.getTime() + cellStartMinutes * 60 * 1000);
-                    onOccupyClick({ postId: post.id, startAt });
+                    if (!onOccupyClick || !canOccupy) return;
+                    onOccupyClick({ postId: post.id, startAt: cellStartAt });
                   };
 
                   return (
                     <div
                       key={`${post.id}-bg-${colIdx}`}
-                      className={`${styles.cell} ${!scheduleAllows ? styles.disabledCell : ''}`}
+                      className={`${styles.cell} ${!canOccupy ? styles.disabledCell : ''}`}
                       style={{
                         gridColumn: colIdx + 2,
                         gridRow: row,
-                        cursor: onOccupyClick && scheduleAllows ? 'crosshair' : undefined,
+                        cursor: canOccupy ? 'crosshair' : undefined,
                       }}
-                      onClick={onOccupyClick && scheduleAllows ? handleCellClick : undefined}
+                      onClick={canOccupy ? handleCellClick : undefined}
                     />
                   );
                 })}
@@ -401,7 +421,7 @@ function Timeline(props: ITimelineProps) {
                           cursor: onDeleteBlock ? 'pointer' : undefined,
                         }}
                       >
-                        {bl.kind === 'MANUAL_BOOKING' ? 'Ручная запись' : 'Блок'}
+                        {bl.kind === 'MANUAL_BOOKING' ? 'Ручная запись' : 'Блокировка'}
                       </div>
                     </Popover>
                   );
