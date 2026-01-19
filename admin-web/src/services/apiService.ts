@@ -44,13 +44,21 @@ class ApiService {
       (response) => response,
       (error: AxiosError) => {
         if (error.response?.status === 401) {
-          // Токен истек или недействителен
-          // Сохраняем текущий путь для возврата после авторизации
-          const currentPath = window.location.pathname + window.location.search;
-          if (currentPath !== '/login') {
-            sessionStorage.setItem('redirectAfterLogin', currentPath);
+          const url = error.config?.url ?? '';
+          const isAuthRequest = url.includes('/admin/login') || url.includes('/admin/register-request');
+          const isAlreadyOnLogin = window.location.pathname === '/login';
+
+          // Для запросов логина/регистрации и когда мы уже на /login — не делаем редирект,
+          // иначе страница перезагрузится и пользователь не увидит ошибку.
+          if (!isAuthRequest && !isAlreadyOnLogin) {
+            // Токен истек или недействителен
+            // Сохраняем текущий путь для возврата после авторизации
+            const currentPath = window.location.pathname + window.location.search;
+            if (currentPath !== '/login') {
+              sessionStorage.setItem('redirectAfterLogin', currentPath);
+            }
+            window.location.href = '/login';
           }
-          window.location.href = '/login';
         }
         logger.error('API ошибка', {
           url: error.config?.url,
@@ -102,6 +110,11 @@ class ApiService {
 
   async approveAdmin(id: string) {
     const response = await this.client.patch(`/admin/admins/${id}/approve`);
+    return response.data;
+  }
+
+  async setAdminRole(id: string, role: 'MAIN' | 'REGULAR') {
+    const response = await this.client.patch(`/admin/admins/${id}/role`, { role });
     return response.data;
   }
 

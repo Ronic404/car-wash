@@ -152,6 +152,40 @@ router.patch('/admins/:id/approve', authenticateAdmin, requireMainAdmin, adminCo
 
 /**
  * @swagger
+ * /api/admin/admins/{id}/role:
+ *   patch:
+ *     summary: Изменить роль администратора (только main)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [role]
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 enum: [MAIN, REGULAR]
+ *     responses:
+ *       200:
+ *         description: Роль изменена
+ *       400:
+ *         description: Ошибка изменения роли
+ */
+router.patch('/admins/:id/role', authenticateAdmin, requireMainAdmin, adminController.setRole);
+
+/**
+ * @swagger
  * /api/admin/admins/{id}:
  *   delete:
  *     summary: Удалить администратора (только main; минимум один main должен оставаться)

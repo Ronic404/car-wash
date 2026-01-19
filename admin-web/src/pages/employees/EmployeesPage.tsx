@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button, Card, List, Space, Typography, Tag, Popconfirm, message, Spin, Empty } from 'antd';
 import apiService from '../../services/apiService';
 import { getAxiosErrorText } from '../../utils/axiosUtils';
+import { useScreenSize } from '../../hooks/useBreakpoint';
 import styles from './EmployeesPage.module.scss';
 
 const { Title } = Typography;
@@ -19,6 +20,7 @@ interface IAdminUser {
 }
 
 function EmployeesPage() {
+  const { isMobile } = useScreenSize();
   const {
     data: requests,
     isLoading: isRequestsLoading,
@@ -67,6 +69,16 @@ function EmployeesPage() {
     }
   };
 
+  const setRole = async (id: string, role: IAdminUser['role']) => {
+    try {
+      await apiService.setAdminRole(id, role);
+      message.success('Роль обновлена');
+      await refetchAdmins();
+    } catch (error: unknown) {
+      message.error(getAxiosErrorText(error) ?? (error instanceof Error ? error.message : 'Ошибка'));
+    }
+  };
+
   const isLoading = isRequestsLoading || isAdminsLoading;
 
   const roleTag = (role: IAdminUser['role']) => (
@@ -74,7 +86,7 @@ function EmployeesPage() {
   );
 
   return (
-    <div>
+    <div className={styles.page}>
       <Title level={2}>Сотрудники</Title>
 
       {isLoading ? (
@@ -88,7 +100,7 @@ function EmployeesPage() {
                 renderItem={(a) => (
                   <List.Item
                     actions={[
-                      <Button key="approve" type="primary" onClick={() => approve(a.id)}>
+                      <Button key="approve" type="primary" onClick={() => approve(a.id)} block={isMobile}>
                         Подтвердить
                       </Button>,
                       <Popconfirm
@@ -98,13 +110,15 @@ function EmployeesPage() {
                         cancelText="Отмена"
                         onConfirm={() => removeAdmin(a.id)}
                       >
-                        <Button danger>Удалить</Button>
+                        <Button danger block={isMobile}>
+                          Удалить
+                        </Button>
                       </Popconfirm>,
                     ]}
                   >
                     <List.Item.Meta
                       title={
-                        <Space>
+                        <Space wrap>
                           <Typography.Text strong>
                             {a.firstName} {a.lastName ?? ''}
                           </Typography.Text>
@@ -128,6 +142,31 @@ function EmployeesPage() {
                 renderItem={(a) => (
                   <List.Item
                     actions={[
+                      a.role === 'MAIN' ? (
+                        <Popconfirm
+                          key="make-regular"
+                          title="Сделать regular?"
+                          description="У main не будет доступа к странице «Сотрудники»."
+                          okText="Сделать regular"
+                          cancelText="Отмена"
+                          onConfirm={() => setRole(a.id, 'REGULAR')}
+                        >
+                          <Button block={isMobile}>Сделать regular</Button>
+                        </Popconfirm>
+                      ) : (
+                        <Popconfirm
+                          key="make-main"
+                          title="Сделать main?"
+                          description="Main получает доступ к странице «Сотрудники»."
+                          okText="Сделать main"
+                          cancelText="Отмена"
+                          onConfirm={() => setRole(a.id, 'MAIN')}
+                        >
+                          <Button type="primary" block={isMobile}>
+                            Сделать main
+                          </Button>
+                        </Popconfirm>
+                      ),
                       <Popconfirm
                         key="delete"
                         title="Удалить администратора?"
@@ -136,13 +175,15 @@ function EmployeesPage() {
                         cancelText="Отмена"
                         onConfirm={() => removeAdmin(a.id)}
                       >
-                        <Button danger>Удалить</Button>
+                        <Button danger block={isMobile}>
+                          Удалить
+                        </Button>
                       </Popconfirm>,
                     ]}
                   >
                     <List.Item.Meta
                       title={
-                        <Space>
+                        <Space wrap>
                           <Typography.Text strong>
                             {a.firstName} {a.lastName ?? ''}
                           </Typography.Text>

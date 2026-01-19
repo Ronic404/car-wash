@@ -28,6 +28,12 @@ const adminIdParamsSchema = z.object({
   }),
 });
 
+const setRoleSchema = z.object({
+  body: z.object({
+    role: z.enum(['MAIN', 'REGULAR']),
+  }),
+});
+
 /**
  * Контроллер для работы с администраторами
  */
@@ -114,6 +120,17 @@ class AdminController {
       const { id } = adminIdParamsSchema.parse({ params: req.params }).params;
       await adminService.deleteAdmin(id);
       res.status(204).send();
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
+    }
+  }
+
+  async setRole(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = adminIdParamsSchema.parse({ params: req.params }).params;
+      const { role } = setRoleSchema.parse({ body: req.body }).body;
+      const admin = await adminService.setAdminRole(id, role);
+      res.json(admin);
     } catch (error: unknown) {
       res.status(400).json({ error: getErrorMessage(error) });
     }

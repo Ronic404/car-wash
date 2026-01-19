@@ -8,4 +8,43 @@
   margin-top: 50px;
 }
 
+.page {
+  width: 100%;
+}
+
+/* Fix Ant List actions overflow on small screens */
+@media (max-width: 768px) {
+  .page :global(.ant-list-item) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page :global(.ant-list-item-meta) {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .page :global(.ant-list-item-meta-title) {
+    white-space: normal;
+  }
+
+  .page :global(.ant-list-item-action) {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    margin-inline-start: 0;
+    margin-top: 0;
+    gap: 8px;
+  }
+
+  .page :global(.ant-list-item-action > li) {
+    padding: 0;
+    width: 100%;
+  }
+
+  .page :global(.ant-list-item-action > li::after) {
+    display: none;
+  }
+}
+
 

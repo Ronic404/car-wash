@@ -220,6 +220,43 @@ class AdminService {
     await prisma.adminUser.delete({ where: { id } });
     logger.info('Администратор удалён', { adminId: id });
   }
+
+  async setAdminRole(id: string, role: 'MAIN' | 'REGULAR') {
+    const admin = await prisma.adminUser.findUnique({
+      where: { id },
+      select: { id: true, role: true, isActive: true },
+    });
+    if (!admin) {
+      throw new Error('Администратор не найден');
+    }
+
+    // Нельзя "снять main" с последнего активного main
+    if (admin.role === 'MAIN' && role === 'REGULAR' && admin.isActive) {
+      const mainCount = await prisma.adminUser.count({
+        where: { role: 'MAIN', isActive: true },
+      });
+      if (mainCount <= 1) {
+        throw new Error('Нельзя понизить последнего main-администратора');
+      }
+    }
+
+    const updated = await prisma.adminUser.update({
+      where: { id },
+      data: { role },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        isActive: true,
+        role: true,
+        createdAt: true,
+        lastLogin: true,
+      },
+    });
+    logger.info('Роль администратора изменена', { adminId: id, role });
+    return updated;
+  }
 }
 
 export default new AdminService();
