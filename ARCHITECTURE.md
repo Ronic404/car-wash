@@ -75,6 +75,13 @@
 3. Админка сохраняет токен и добавляет его в `Authorization: Bearer ...` (axios interceptor).
 4. Для получения профиля: `GET /api/admin/me`.
 
+### 1.1) Регистрация администратора (заявка)
+
+1. На странице `/register` админка отправляет `POST /api/admin/register-request`.
+2. Если это **первый администратор в системе**, API создаёт его как `MAIN` и активного (bootstrap).
+3. Иначе API создаёт администратора как `REGULAR` и `isActive=false` (ожидает подтверждения).
+4. `MAIN` администратор подтверждает заявку на странице **«Сотрудники»** (см. endpoints ниже).
+
 ### 2) SSE уведомления (admin-web ⇐ api)
 
 1. Админка открывает `EventSource` на `GET /api/sse/events?token=...` (токен в query, т.к. `EventSource` не поддерживает заголовки).
@@ -90,6 +97,11 @@
 4. Бот создаёт запись (`POST /api/bookings/by-time`).
 5. API после создания вызывает `sseService.notifyNewBooking(...)`.
 6. Админка получает SSE `new_booking` и обновляет списки/детали.
+
+### 3.1) Создание записи администратором (admin-web → api → admin-web(SSE))
+
+1. Админка создаёт запись через `POST /api/bookings/by-time/admin`.
+2. Запись создаётся сразу со статусом `CONFIRMED` (без ручного подтверждения).
 
 ### 4) Прайс услуг (telegram-bot → api)
 
@@ -109,9 +121,9 @@
 - `Car 1—N Booking`
 - `WashingPost 1—N Booking`
 - `Service 1—N Booking`
-- `Service N—N CarCategory` через `ServicePrice` (цена + длительность)
+- `Service N—N CarCategory` через `ServicePrice` (цена)
 
-Важный момент: **`Service.price`/`Service.duration` не используются как “одна цена”** — актуальные значения лежат в `ServicePrice`.
+Важный момент: **цена услуги хранится не в `Service`, а в `ServicePrice`** (на категорию авто).
 
 ---
 

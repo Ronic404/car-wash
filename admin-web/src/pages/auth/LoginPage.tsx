@@ -91,6 +91,21 @@ function LoginPage() {
               Войти
             </Button>
           </Form.Item>
+
+          <Form.Item style={{ marginBottom: 0 }}>
+            <Typography.Text type="secondary">
+              Нет доступа?{' '}
+              <a
+                href="/register"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate('/register');
+                }}
+              >
+                Подать заявку
+              </a>
+            </Typography.Text>
+          </Form.Item>
         </Form>
       </Card>
     </div>

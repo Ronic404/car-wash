@@ -1,0 +1,35 @@
+.registerContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.registerCard {
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.titleContainer {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.hint {
+  margin-bottom: 18px;
+}
+
+.button {
+  height: 40px;
+}
+
+.linksRow {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+

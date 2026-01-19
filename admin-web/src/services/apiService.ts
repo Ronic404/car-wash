@@ -75,9 +75,38 @@ class ApiService {
     return response.data;
   }
 
+  async registerAdminRequest(data: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName?: string;
+  }) {
+    const response = await this.client.post('/admin/register-request', data);
+    return response.data;
+  }
+
   async getMe() {
     const response = await this.client.get('/admin/me');
     return response.data;
+  }
+
+  async getAdmins() {
+    const response = await this.client.get('/admin/admins');
+    return response.data;
+  }
+
+  async getAdminRegistrationRequests() {
+    const response = await this.client.get('/admin/registration-requests');
+    return response.data;
+  }
+
+  async approveAdmin(id: string) {
+    const response = await this.client.patch(`/admin/admins/${id}/approve`);
+    return response.data;
+  }
+
+  async deleteAdmin(id: string) {
+    await this.client.delete(`/admin/admins/${id}`);
   }
 
   // Bookings

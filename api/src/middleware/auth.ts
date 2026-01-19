@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import logger from '../config/logger';
+import prisma from '../config/database';
 
 /**
  * Интерфейс для JWT payload
@@ -13,11 +14,9 @@ interface ITokenPayload {
 /**
  * Расширение типа Request для добавления информации об администраторе
  */
-declare global {
-  namespace Express {
-    interface Request {
-      admin?: ITokenPayload;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    admin?: ITokenPayload;
   }
 }
 
@@ -52,6 +51,43 @@ export const authenticateAdmin = (
   } catch (error) {
     logger.warn('Ошибка аутентификации', { error, path: req.path });
     res.status(401).json({ error: 'Недействительный токен' });
+  }
+};
+
+/**
+ * Middleware: доступ только для main-администратора.
+ * Проверяем роль в БД (не доверяем client-side).
+ */
+export const requireMainAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.admin?.adminId) {
+      res.status(401).json({ error: 'Не авторизован' });
+      return;
+    }
+
+    const admin = await prisma.adminUser.findUnique({
+      where: { id: req.admin.adminId },
+      select: { id: true, isActive: true, role: true },
+    });
+
+    if (!admin || !admin.isActive) {
+      res.status(401).json({ error: 'Не авторизован' });
+      return;
+    }
+
+    if (admin.role !== 'MAIN') {
+      res.status(403).json({ error: 'Недостаточно прав' });
+      return;
+    }
+
+    next();
+  } catch (error) {
+    logger.warn('Ошибка проверки роли администратора', { error, path: req.path });
+    res.status(500).json({ error: 'Ошибка проверки прав' });
   }
 };
 

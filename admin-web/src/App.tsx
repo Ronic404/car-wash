@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import BookingsPage from './pages/bookings/BookingsPage';
 import BookingDetailPage from './pages/bookings/BookingDetailPage';
@@ -23,6 +24,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function MainOnlyRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, admin } = useAuthStore();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (admin?.role !== 'MAIN') return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+}
+
 function App() {
   const { isAuthenticated, checkAuth } = useAuthStore();
 
@@ -34,6 +42,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+      <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
       <Route
         path="/"
         element={
@@ -48,7 +57,14 @@ function App() {
         <Route path="bookings/:id" element={<BookingDetailPage />} />
         <Route path="slots" element={<SlotsPage />} />
         <Route path="services" element={<ServicesPage />} />
-        <Route path="employees" element={<EmployeesPage />} />
+        <Route
+          path="employees"
+          element={
+            <MainOnlyRoute>
+              <EmployeesPage />
+            </MainOnlyRoute>
+          }
+        />
       </Route>
     </Routes>
   );

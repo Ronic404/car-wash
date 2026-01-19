@@ -22,21 +22,29 @@ const registerSchema = z.object({
   }),
 });
 
+const adminIdParamsSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
 /**
  * Контроллер для работы с администраторами
  */
 class AdminController {
   /**
-   * Регистрация нового администратора
+   * Публичная регистрация администратора (создаёт заявку; первый админ становится MAIN/active)
    */
-  async register(req: Request, res: Response): Promise<void> {
+  async registerRequest(req: Request, res: Response): Promise<void> {
     try {
-      const admin = await adminService.registerAdmin(req.body);
+      const admin = await adminService.registerAdminRequest(req.body);
       res.status(201).json({
         id: admin.id,
         email: admin.email,
         firstName: admin.firstName,
         lastName: admin.lastName,
+        isActive: admin.isActive,
+        role: admin.role,
       });
     } catch (error: unknown) {
       res.status(400).json({ error: getErrorMessage(error) });
@@ -70,6 +78,44 @@ class AdminController {
       res.json(admin);
     } catch (error: unknown) {
       res.status(404).json({ error: getErrorMessage(error) });
+    }
+  }
+
+  async getAllAdmins(_req: Request, res: Response): Promise<void> {
+    try {
+      const admins = await adminService.getAllAdmins();
+      res.json(admins);
+    } catch (error: unknown) {
+      res.status(500).json({ error: getErrorMessage(error) });
+    }
+  }
+
+  async getRegistrationRequests(_req: Request, res: Response): Promise<void> {
+    try {
+      const admins = await adminService.getRegistrationRequests();
+      res.json(admins);
+    } catch (error: unknown) {
+      res.status(500).json({ error: getErrorMessage(error) });
+    }
+  }
+
+  async approve(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = adminIdParamsSchema.parse({ params: req.params }).params;
+      const admin = await adminService.approveAdmin(id);
+      res.json(admin);
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
+    }
+  }
+
+  async delete(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = adminIdParamsSchema.parse({ params: req.params }).params;
+      await adminService.deleteAdmin(id);
+      res.status(204).send();
+    } catch (error: unknown) {
+      res.status(400).json({ error: getErrorMessage(error) });
     }
   }
 }

@@ -52,11 +52,15 @@ function Layout() {
       icon: <ShoppingOutlined />,
       label: <Link to="/services">Услуги</Link>,
     },
-    {
-      key: '/employees',
-      icon: <TeamOutlined />,
-      label: <Link to="/employees">Сотрудники</Link>,
-    },
+    ...(admin?.role === 'MAIN'
+      ? [
+          {
+            key: '/employees',
+            icon: <TeamOutlined />,
+            label: <Link to="/employees">Сотрудники</Link>,
+          } as const,
+        ]
+      : []),
   ];
 
   const userMenuItems: MenuProps['items'] = [

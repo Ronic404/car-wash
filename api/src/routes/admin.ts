@@ -1,16 +1,19 @@
 import { Router } from 'express';
 import adminController, { loginSchema, registerSchema } from '../controllers/adminController';
-import { authenticateAdmin } from '../middleware/auth';
+import { authenticateAdmin, requireMainAdmin } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 
 const router = Router();
 
 /**
  * @swagger
- * /api/admin/register:
+ * /api/admin/register-request:
  *   post:
- *     summary: Регистрация нового администратора
+ *     summary: Регистрация администратора (создание заявки)
  *     tags: [Admin]
+ *     description: |
+ *       Создаёт администратора со статусом "ожидает подтверждения" (isActive=false, role=REGULAR).
+ *       Исключение: если это самый первый администратор в системе, он будет создан как MAIN и активный (bootstrap).
  *     requestBody:
  *       required: true
  *       content:
@@ -34,11 +37,11 @@ const router = Router();
  *                 type: string
  *     responses:
  *       201:
- *         description: Администратор успешно создан
+ *         description: Заявка создана (или создан первый MAIN-админ)
  *       400:
  *         description: Ошибка валидации или администратор уже существует
  */
-router.post('/register', validate(registerSchema), adminController.register);
+router.post('/register-request', validate(registerSchema), adminController.registerRequest);
 
 /**
  * @swagger
@@ -93,6 +96,82 @@ router.post('/login', validate(loginSchema), adminController.login);
  *         description: Не авторизован
  */
 router.get('/me', authenticateAdmin, adminController.getMe);
+
+/**
+ * @swagger
+ * /api/admin/admins:
+ *   get:
+ *     summary: Получение списка администраторов (только main)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Список администраторов
+ *       403:
+ *         description: Недостаточно прав
+ */
+router.get('/admins', authenticateAdmin, requireMainAdmin, adminController.getAllAdmins);
+
+/**
+ * @swagger
+ * /api/admin/registration-requests:
+ *   get:
+ *     summary: Получение заявок на регистрацию (только main)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Список заявок
+ *       403:
+ *         description: Недостаточно прав
+ */
+router.get('/registration-requests', authenticateAdmin, requireMainAdmin, adminController.getRegistrationRequests);
+
+/**
+ * @swagger
+ * /api/admin/admins/{id}/approve:
+ *   patch:
+ *     summary: Подтвердить заявку администратора (только main)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Администратор подтверждён
+ */
+router.patch('/admins/:id/approve', authenticateAdmin, requireMainAdmin, adminController.approve);
+
+/**
+ * @swagger
+ * /api/admin/admins/{id}:
+ *   delete:
+ *     summary: Удалить администратора (только main; минимум один main должен оставаться)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       204:
+ *         description: Удалён
+ *       400:
+ *         description: Ошибка удаления
+ */
+router.delete('/admins/:id', authenticateAdmin, requireMainAdmin, adminController.delete);
 
 export default router;
 

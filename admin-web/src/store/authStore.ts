@@ -8,6 +8,7 @@ interface IAdmin {
   email: string;
   firstName: string;
   lastName?: string;
+  role?: 'MAIN' | 'REGULAR';
 }
 
 interface IAuthState {

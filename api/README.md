@@ -53,13 +53,21 @@ npm start
 
 ### Аутентификация
 
-- `POST /api/admin/register` - Регистрация администратора
+- `POST /api/admin/register-request` - Регистрация администратора (создание заявки; первый админ bootstrap-ится как MAIN/active)
 - `POST /api/admin/login` - Вход администратора
 - `GET /api/admin/me` - Получение информации о текущем администраторе
+
+### Администраторы (только main)
+
+- `GET /api/admin/admins` - Список администраторов
+- `GET /api/admin/registration-requests` - Список заявок (неактивные админы)
+- `PATCH /api/admin/admins/:id/approve` - Подтвердить заявку
+- `DELETE /api/admin/admins/:id` - Удалить администратора (нельзя удалить последнего main)
 
 ### Записи
 
 - `POST /api/bookings/by-time` - Создание записи по времени (client/bot)
+- `POST /api/bookings/by-time/admin` - Создание записи администратором (сразу CONFIRMED)
 - `GET /api/bookings/user/:userId` - Получение записей пользователя (bot)
 - `GET /api/bookings` - Получение всех записей (с фильтрами)
 - `GET /api/bookings/:id` - Получение записи по ID

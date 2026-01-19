@@ -185,11 +185,17 @@ model AdminUser {
   firstName String
   lastName  String?
   isActive  Boolean  @default(true)
+  role      AdminRole @default(REGULAR)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   lastLogin DateTime?
 
   @@map("admin_users")
+}
+
+enum AdminRole {
+  MAIN
+  REGULAR
 }
 
 // Моечные посты
