@@ -5,6 +5,7 @@ import logger from '../config/logger';
 import { ICar } from '../types/car';
 import { capitalizeFirstLetter } from '../utils/stringUtils';
 import { finalizeBookingFromSession } from '../handlers/slotsHandler';
+import { handleStart } from '../handlers/startHandler';
 
 /**
  * Интерфейс для данных сцены добавления автомобиля
@@ -164,9 +165,20 @@ addCarScene.action('skip_license_plate', async (ctx) => {
 });
 
 // Шаг 2: Получение марки
-addCarScene.on('text', async (ctx) => {
+addCarScene.on('text', async (ctx, next) => {
   try {
     const text = ctx.message.text;
+
+    // Если пользователь отправил команду (/start, /menu и т.п.), не воспринимаем это как ввод данных.
+    // Передаём управление дальше (до command-handlers), чтобы команда отработала корректно.
+    const entities = ctx.message.entities;
+    const isBotCommand =
+      Array.isArray(entities) &&
+      entities.some((e) => e.type === 'bot_command' && e.offset === 0);
+    if (isBotCommand) {
+      return next();
+    }
+
     const carData = ctx.scene.session.carData;
 
     // Шаг 1: Марка
@@ -254,5 +266,6 @@ addCarScene.on('text', async (ctx) => {
 // Обработка команды /start для выхода из сцены
 addCarScene.command('start', async (ctx) => {
   await ctx.reply('Добавление автомобиля отменено.');
-  return await ctx.scene.leave();
+  await ctx.scene.leave();
+  await handleStart(ctx);
 });

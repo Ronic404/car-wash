@@ -75,18 +75,17 @@ class ApiService {
   /**
    * Получение доступного времени под услугу
    */
-  async getAvailability(dateFrom: Date, dateTo: Date, serviceId: string): Promise<IAvailabilityOption[]> {
+  async getAvailability(dateFrom: Date, serviceId: string): Promise<IAvailabilityOption[]> {
     try {
       const response = await this.client.get<IAvailabilityOption[]>('/availability', {
         params: {
           dateFrom: dateFrom.toISOString(),
-          dateTo: dateTo.toISOString(),
           serviceId,
         },
       });
       return response.data;
     } catch (error) {
-      logger.error('Ошибка получения доступного времени', { error, dateFrom, dateTo, serviceId });
+      logger.error('Ошибка получения доступного времени', { error, dateFrom, serviceId });
       throw error;
     }
   }

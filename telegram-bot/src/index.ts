@@ -50,7 +50,7 @@ bot.use(sessionMiddleware);
 bot.use(stage.middleware() as unknown as Middleware<Context>);
 
 // Обработка команд
-bot.command('start', handleStart);
+bot.start(handleStart);
 bot.command('slots', handleViewSlots);
 bot.command('services', handleViewServices);
 bot.command('mycars', handleMyCars);

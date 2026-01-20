@@ -32,12 +32,6 @@ export async function handleViewSlots(ctx: Context) {
       return;
     }
 
-    // Новый поток: сначала выбираем услугу, потом показываем доступные окна
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 2); // +2 дня, чтобы включить завтра
-
     await ctx.reply('Выберите услугу:', {
       reply_markup: {
         inline_keyboard: await buildServicesKeyboard(ctx),
@@ -102,14 +96,9 @@ export async function handleSelectServiceForSlots(ctx: Context, serviceId: strin
       return;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 2);
-
     await ctx.reply('⏳ Подбираю доступное время...');
 
-    const optionsRaw: IAvailabilityOption[] = await apiService.getAvailability(today, tomorrow, serviceId);
+    const optionsRaw: IAvailabilityOption[] = await apiService.getAvailability(new Date(), serviceId);
     const nowMs = Date.now();
     const options = optionsRaw.filter((o) => new Date(o.startAt).getTime() > nowMs);
     if (options.length === 0) {
