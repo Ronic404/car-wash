@@ -23,23 +23,6 @@ const router = Router();
  *         description: Не авторизован
  */
 router.get('/', authenticateAdmin, washingPostController.getAll);
-
-/**
- * @swagger
- * /api/washing-posts/active:
- *   get:
- *     summary: Получение активных моечных постов
- *     tags: [WashingPosts]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Список активных постов
- *       401:
- *         description: Не авторизован
- */
-router.get('/active', authenticateAdmin, washingPostController.getActive);
-
 /**
  * @swagger
  * /api/washing-posts:
@@ -61,8 +44,6 @@ router.get('/active', authenticateAdmin, washingPostController.getActive);
  *                 type: string
  *               order:
  *                 type: integer
- *               isActive:
- *                 type: boolean
  *     responses:
  *       201:
  *         description: Пост успешно создан
@@ -104,8 +85,6 @@ router.post(
  *                 type: string
  *               order:
  *                 type: integer
- *               isActive:
- *                 type: boolean
  *     responses:
  *       200:
  *         description: Пост успешно обновлен

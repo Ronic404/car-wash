@@ -14,7 +14,6 @@ interface IWashingPostServiceLink {
 export interface IWashingPost {
   id: string;
   name: string;
-  isActive: boolean;
   order: number;
   services?: IWashingPostServiceLink[];
   createdAt?: string;

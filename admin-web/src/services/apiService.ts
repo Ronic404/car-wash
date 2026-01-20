@@ -313,17 +313,12 @@ class ApiService {
     return response.data;
   }
 
-  async getActiveWashingPosts(): Promise<IWashingPost[]> {
-    const response = await this.client.get('/washing-posts/active');
-    return response.data;
-  }
-
-  async createWashingPost(data: { name: string; order?: number; isActive?: boolean; serviceIds?: string[] }): Promise<IWashingPost> {
+  async createWashingPost(data: { name: string; order?: number; serviceIds?: string[] }): Promise<IWashingPost> {
     const response = await this.client.post('/washing-posts', data);
     return response.data;
   }
 
-  async updateWashingPost(id: string, data: { name?: string; order?: number; isActive?: boolean; serviceIds?: string[] }): Promise<IWashingPost> {
+  async updateWashingPost(id: string, data: { name?: string; order?: number; serviceIds?: string[] }): Promise<IWashingPost> {
     const response = await this.client.patch(`/washing-posts/${id}`, data);
     return response.data;
   }

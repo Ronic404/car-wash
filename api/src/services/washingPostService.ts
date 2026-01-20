@@ -24,31 +24,11 @@ class WashingPostService {
   }
 
   /**
-   * Получение активных постов
-   */
-  async getActivePosts() {
-    try {
-      const posts = await prisma.washingPost.findMany({
-        where: { isActive: true },
-        include: {
-          services: { include: { service: true } },
-        },
-        orderBy: { order: 'asc' },
-      });
-      return posts;
-    } catch (error) {
-      logger.error('Ошибка получения активных постов', { error });
-      throw error;
-    }
-  }
-
-  /**
    * Создание нового поста
    */
   async createPost(data: {
     name: string;
     order?: number;
-    isActive?: boolean;
     serviceIds?: string[];
   }) {
     try {
@@ -63,7 +43,6 @@ class WashingPostService {
         data: {
           name: data.name,
           order: data.order,
-          isActive: data.isActive ?? true,
           services: data.serviceIds?.length
             ? {
               create: data.serviceIds.map((serviceId) => ({ serviceId })),
@@ -91,7 +70,6 @@ class WashingPostService {
     data: {
       name?: string;
       order?: number;
-      isActive?: boolean;
       serviceIds?: string[];
     }
   ) {
@@ -101,7 +79,6 @@ class WashingPostService {
         data: {
           name: data.name,
           order: data.order,
-          isActive: data.isActive,
           services: data.serviceIds
             ? {
               deleteMany: {},
@@ -132,7 +109,7 @@ class WashingPostService {
 
       if (bookingsCount > 0 || blocksCount > 0) {
         throw new Error(
-          'Невозможно удалить пост: существуют связанные записи/блокировки. Используйте деактивацию.'
+          'Невозможно удалить пост: существуют связанные записи/блокировки.'
         );
       }
 

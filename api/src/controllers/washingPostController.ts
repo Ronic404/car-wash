@@ -10,7 +10,6 @@ const createWashingPostSchema = z.object({
   body: z.object({
     name: z.string().min(1),
     order: z.number().int().optional(),
-    isActive: z.boolean().optional(),
     serviceIds: z.array(z.string().uuid()).optional(),
   }),
 });
@@ -19,7 +18,6 @@ const updateWashingPostSchema = z.object({
   body: z.object({
     name: z.string().min(1).optional(),
     order: z.number().int().optional(),
-    isActive: z.boolean().optional(),
     serviceIds: z.array(z.string().uuid()).optional(),
   }),
 });
@@ -34,18 +32,6 @@ class WashingPostController {
   async getAll(req: Request, res: Response): Promise<void> {
     try {
       const posts = await washingPostService.getAllPosts();
-      res.json(posts);
-    } catch (error: unknown) {
-      res.status(500).json({ error: getErrorMessage(error) });
-    }
-  }
-
-  /**
-   * Получение активных постов
-   */
-  async getActive(req: Request, res: Response): Promise<void> {
-    try {
-      const posts = await washingPostService.getActivePosts();
       res.json(posts);
     } catch (error: unknown) {
       res.status(500).json({ error: getErrorMessage(error) });

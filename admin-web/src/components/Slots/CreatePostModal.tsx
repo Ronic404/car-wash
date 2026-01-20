@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Form, Input, List, Modal, Popconfirm, Select, Switch, Typography, message } from 'antd';
+import { Button, Form, Input, List, Modal, Popconfirm, Select, Typography, message } from 'antd';
 import type { IService } from '../../types/service';
 import type { IWashingPost } from '../../types/washingPost';
 import apiService from '../../services/apiService';
@@ -24,7 +24,6 @@ export default function CreatePostModal(props: ICreatePostModalProps) {
       setIsSaving(true);
       await apiService.createWashingPost({
         name: values.name,
-        isActive: false,
         serviceIds: values.serviceIds,
       });
       message.success('Пост создан');
@@ -35,16 +34,6 @@ export default function CreatePostModal(props: ICreatePostModalProps) {
       message.error(text);
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const toggleActive = async (post: IWashingPost, isActive: boolean) => {
-    try {
-      await apiService.updateWashingPost(post.id, { isActive });
-      onUpdated();
-    } catch (error: unknown) {
-      const text = getAxiosErrorText(error) ?? (error instanceof Error ? error.message : 'Ошибка');
-      message.error(text);
     }
   };
 
@@ -140,15 +129,10 @@ export default function CreatePostModal(props: ICreatePostModalProps) {
           renderItem={(post) => (
             <List.Item
               actions={[
-                <Switch
-                  key="active"
-                  checked={post.isActive}
-                  onChange={(checked) => toggleActive(post, checked)}
-                />,
                 <Popconfirm
                   key="delete"
                   title="Удалить пост?"
-                  description="Удаление возможно только если у поста нет слотов. Иначе лучше деактивировать."
+                  description="Удаление возможно только если у поста нет записей/блокировок."
                   onConfirm={() => deletePost(post)}
                   okText="Удалить"
                   cancelText="Отмена"
