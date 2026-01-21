@@ -45,7 +45,14 @@ function EmployeesPage() {
   );
 
   const allAdmins = useMemo(
-    () => (admins ?? []).slice().sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '')),
+    () =>
+      (admins ?? [])
+        .filter((a) => a.isActive)
+        .slice()
+        .sort((a, b) => {
+          if (a.role !== b.role) return a.role === 'MAIN' ? -1 : 1;
+          return (b.createdAt ?? '').localeCompare(a.createdAt ?? '');
+        }),
     [admins]
   );
 
@@ -93,48 +100,6 @@ function EmployeesPage() {
         <Spin size="large" className={styles.spin} />
       ) : (
         <Space direction="vertical" size={16} style={{ width: '100%' }}>
-          <Card title="Заявки на регистрацию" size="small">
-            {pendingRequests.length ? (
-              <List
-                dataSource={pendingRequests}
-                renderItem={(a) => (
-                  <List.Item
-                    actions={[
-                      <Button key="approve" type="primary" onClick={() => approve(a.id)} block={isMobile}>
-                        Подтвердить
-                      </Button>,
-                      <Popconfirm
-                        key="delete"
-                        title="Удалить заявку?"
-                        okText="Удалить"
-                        cancelText="Отмена"
-                        onConfirm={() => removeAdmin(a.id)}
-                      >
-                        <Button danger block={isMobile}>
-                          Удалить
-                        </Button>
-                      </Popconfirm>,
-                    ]}
-                  >
-                    <List.Item.Meta
-                      title={
-                        <Space wrap>
-                          <Typography.Text strong>
-                            {a.firstName} {a.lastName ?? ''}
-                          </Typography.Text>
-                          {roleTag(a.role)}
-                        </Space>
-                      }
-                      description={<Typography.Text type="secondary">{a.email}</Typography.Text>}
-                    />
-                  </List.Item>
-                )}
-              />
-            ) : (
-              <Empty description="Заявок нет" />
-            )}
-          </Card>
-
           <Card title="Администраторы" size="small">
             {allAdmins.length ? (
               <List
@@ -188,7 +153,6 @@ function EmployeesPage() {
                             {a.firstName} {a.lastName ?? ''}
                           </Typography.Text>
                           {roleTag(a.role)}
-                          {!a.isActive && <Tag>ожидает</Tag>}
                         </Space>
                       }
                       description={<Typography.Text type="secondary">{a.email}</Typography.Text>}
@@ -198,6 +162,48 @@ function EmployeesPage() {
               />
             ) : (
               <Empty description="Администраторов нет" />
+            )}
+          </Card>
+
+          <Card title="Заявки на регистрацию" size="small">
+            {pendingRequests.length ? (
+              <List
+                dataSource={pendingRequests}
+                renderItem={(a) => (
+                  <List.Item
+                    actions={[
+                      <Button key="approve" type="primary" onClick={() => approve(a.id)} block={isMobile}>
+                        Подтвердить
+                      </Button>,
+                      <Popconfirm
+                        key="delete"
+                        title="Удалить заявку?"
+                        okText="Удалить"
+                        cancelText="Отмена"
+                        onConfirm={() => removeAdmin(a.id)}
+                      >
+                        <Button danger block={isMobile}>
+                          Удалить
+                        </Button>
+                      </Popconfirm>,
+                    ]}
+                  >
+                    <List.Item.Meta
+                      title={
+                        <Space wrap>
+                          <Typography.Text strong>
+                            {a.firstName} {a.lastName ?? ''}
+                          </Typography.Text>
+                          {roleTag(a.role)}
+                        </Space>
+                      }
+                      description={<Typography.Text type="secondary">{a.email}</Typography.Text>}
+                    />
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Empty description="Заявок нет" />
             )}
           </Card>
         </Space>
