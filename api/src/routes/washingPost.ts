@@ -44,6 +44,12 @@ router.get('/', authenticateAdmin, washingPostController.getAll);
  *                 type: string
  *               order:
  *                 type: integer
+ *               workFromMinutes:
+ *                 type: integer
+ *                 description: Начало работы по умолчанию (в минутах от 00:00)
+ *               workToMinutes:
+ *                 type: integer
+ *                 description: Конец работы по умолчанию (в минутах от 00:00)
  *     responses:
  *       201:
  *         description: Пост успешно создан
@@ -84,6 +90,10 @@ router.post(
  *               name:
  *                 type: string
  *               order:
+ *                 type: integer
+ *               workFromMinutes:
+ *                 type: integer
+ *               workToMinutes:
  *                 type: integer
  *     responses:
  *       200:

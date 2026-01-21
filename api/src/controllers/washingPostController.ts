@@ -11,6 +11,8 @@ const createWashingPostSchema = z.object({
     name: z.string().min(1),
     order: z.number().int().optional(),
     serviceIds: z.array(z.string().uuid()).optional(),
+    workFromMinutes: z.number().int().min(0).max(24 * 60).optional(),
+    workToMinutes: z.number().int().min(0).max(24 * 60).optional(),
   }),
 });
 
@@ -19,6 +21,8 @@ const updateWashingPostSchema = z.object({
     name: z.string().min(1).optional(),
     order: z.number().int().optional(),
     serviceIds: z.array(z.string().uuid()).optional(),
+    workFromMinutes: z.number().int().min(0).max(24 * 60).optional(),
+    workToMinutes: z.number().int().min(0).max(24 * 60).optional(),
   }),
 });
 

@@ -15,6 +15,8 @@ export interface IWashingPost {
   id: string;
   name: string;
   order: number;
+  workFromMinutes: number;
+  workToMinutes: number;
   services?: IWashingPostServiceLink[];
   createdAt?: string;
   updatedAt?: string;

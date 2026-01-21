@@ -203,6 +203,8 @@ model WashingPost {
   id        String   @id @default(uuid())
   name      String   // Название поста (например "Пост 1")
   order     Int      @default(0) // Порядок отображения
+  workFromMinutes Int @default(600) // 10:00
+  workToMinutes   Int @default(1200) // 20:00
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

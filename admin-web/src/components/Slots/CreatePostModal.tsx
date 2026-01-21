@@ -1,10 +1,23 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Form, Input, List, Modal, Select, Typography, message } from 'antd';
+import { Button, Form, Input, List, Modal, Select, TimePicker, Typography, message } from 'antd';
+import dayjs, { Dayjs } from 'dayjs';
 import EditPostModal from './EditPostModal';
 import type { IService } from '../../types/service';
 import type { IWashingPost } from '../../types/washingPost';
 import apiService from '../../services/apiService';
 import { getAxiosErrorText } from '../../utils/axiosUtils';
+
+function timeToMinutes(value: Dayjs): number {
+  return value.hour() * 60 + value.minute();
+}
+
+const timePickerProps = {
+  format: 'HH:mm',
+  minuteStep: 5,
+  allowClear: false,
+  showNow: false,
+  needConfirm: false,
+} as const;
 
 interface ICreatePostModalProps {
   open: boolean;
@@ -27,6 +40,8 @@ export default function CreatePostModal(props: ICreatePostModalProps) {
       await apiService.createWashingPost({
         name: values.name,
         serviceIds: values.serviceIds,
+        workFromMinutes: values.workFrom ? timeToMinutes(values.workFrom as Dayjs) : undefined,
+        workToMinutes: values.workTo ? timeToMinutes(values.workTo as Dayjs) : undefined,
       });
       message.success('Пост создан');
       form.resetFields();
@@ -121,6 +136,26 @@ export default function CreatePostModal(props: ICreatePostModalProps) {
               .map((s) => ({ value: s.id, label: s.name }))}
           />
         </Form.Item>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <Form.Item
+            label="Время работы (с)"
+            name="workFrom"
+            initialValue={dayjs().hour(10).minute(0).second(0).millisecond(0)}
+            rules={[{ required: true, message: 'Укажите время' }]}
+          >
+            <TimePicker {...timePickerProps} />
+          </Form.Item>
+
+          <Form.Item
+            label="Время работы (до)"
+            name="workTo"
+            initialValue={dayjs().hour(20).minute(0).second(0).millisecond(0)}
+            rules={[{ required: true, message: 'Укажите время' }]}
+          >
+            <TimePicker {...timePickerProps} />
+          </Form.Item>
+        </div>
       </Form>
 
       {editingPost &&

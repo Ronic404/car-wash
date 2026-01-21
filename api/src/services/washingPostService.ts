@@ -30,6 +30,8 @@ class WashingPostService {
     name: string;
     order?: number;
     serviceIds?: string[];
+    workFromMinutes?: number;
+    workToMinutes?: number;
   }) {
     try {
       if (data.order === undefined) {
@@ -43,6 +45,8 @@ class WashingPostService {
         data: {
           name: data.name,
           order: data.order,
+          workFromMinutes: data.workFromMinutes,
+          workToMinutes: data.workToMinutes,
           services: data.serviceIds?.length
             ? {
               create: data.serviceIds.map((serviceId) => ({ serviceId })),
@@ -71,6 +75,8 @@ class WashingPostService {
       name?: string;
       order?: number;
       serviceIds?: string[];
+      workFromMinutes?: number;
+      workToMinutes?: number;
     }
   ) {
     try {
@@ -79,6 +85,8 @@ class WashingPostService {
         data: {
           name: data.name,
           order: data.order,
+          workFromMinutes: data.workFromMinutes,
+          workToMinutes: data.workToMinutes,
           services: data.serviceIds
             ? {
               deleteMany: {},

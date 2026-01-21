@@ -1,9 +1,32 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Form, Input, Modal, Popconfirm, Select, message } from 'antd';
+import { Button, Form, Input, Modal, Popconfirm, Select, TimePicker, message } from 'antd';
+import dayjs, { Dayjs } from 'dayjs';
 import type { IService } from '../../types/service';
 import type { IWashingPost } from '../../types/washingPost';
 import apiService from '../../services/apiService';
 import { getAxiosErrorText } from '../../utils/axiosUtils';
+
+function timeToMinutes(value: Dayjs): number {
+  return value.hour() * 60 + value.minute();
+}
+
+function minutesToDayjs(value: unknown, fallbackMinutes: number): Dayjs {
+  const minutes =
+    typeof value === 'number' && Number.isFinite(value) ? value : fallbackMinutes;
+  return dayjs()
+    .hour(Math.floor(minutes / 60))
+    .minute(minutes % 60)
+    .second(0)
+    .millisecond(0);
+}
+
+const timePickerProps = {
+  format: 'HH:mm',
+  minuteStep: 5,
+  allowClear: false,
+  showNow: false,
+  needConfirm: false,
+} as const;
 
 interface IEditPostModalProps {
   open: boolean;
@@ -35,6 +58,8 @@ export default function EditPostModal(props: IEditPostModalProps) {
     form.setFieldsValue({
       name: post.name,
       serviceIds: post.services?.map((x) => x.serviceId) ?? [],
+      workFrom: minutesToDayjs(post.workFromMinutes, 10 * 60),
+      workTo: minutesToDayjs(post.workToMinutes, 20 * 60),
     });
   }, [open, post, form]);
 
@@ -54,6 +79,8 @@ export default function EditPostModal(props: IEditPostModalProps) {
       await apiService.updateWashingPost(post.id, {
         name: (values.name as string).trim(),
         serviceIds: values.serviceIds as string[],
+        workFromMinutes: values.workFrom ? timeToMinutes(values.workFrom as Dayjs) : undefined,
+        workToMinutes: values.workTo ? timeToMinutes(values.workTo as Dayjs) : undefined,
       });
       message.success('Пост обновлён');
       onUpdated();
@@ -126,6 +153,24 @@ export default function EditPostModal(props: IEditPostModalProps) {
             options={serviceOptions}
           />
         </Form.Item>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <Form.Item
+            label="Время работы (с)"
+            name="workFrom"
+            rules={[{ required: true, message: 'Укажите время' }]}
+          >
+            <TimePicker {...timePickerProps} />
+          </Form.Item>
+
+          <Form.Item
+            label="Время работы (до)"
+            name="workTo"
+            rules={[{ required: true, message: 'Укажите время' }]}
+          >
+            <TimePicker {...timePickerProps} />
+          </Form.Item>
+        </div>
       </Form>
     </Modal>
   );
