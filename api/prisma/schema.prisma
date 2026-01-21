@@ -162,21 +162,6 @@ enum TimeBlockKind {
   MANUAL_BOOKING // Ручная запись (клиент может быть не в базе)
 }
 
-// Сотрудники
-model Employee {
-  id        String   @id @default(uuid())
-  firstName String
-  lastName  String
-  email     String   @unique
-  phone     String?
-  position  String?  // Должность
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("employees")
-}
-
 // Администраторы
 model AdminUser {
   id        String   @id @default(uuid())

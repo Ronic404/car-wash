@@ -202,7 +202,7 @@ export function ServicesTable({ data }: IServicesTableProps) {
   const [editing, setEditing] = useState(false);
   const [localData, setLocalData] = useState<IServicesTable>(data);
   const [newServiceName, setNewServiceName] = useState('');
-  const [newServiceDuration, setNewServiceDuration] = useState<number>(60);
+  const [newServiceDuration, setNewServiceDuration] = useState<number | null>(60);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddingService, setIsAddingService] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -400,7 +400,7 @@ export function ServicesTable({ data }: IServicesTableProps) {
       message.warning('Введите название услуги');
       return;
     }
-    if (!Number.isFinite(newServiceDuration) || newServiceDuration <= 0) {
+    if (typeof newServiceDuration !== 'number' || newServiceDuration <= 0) {
       message.warning('Укажите длительность (мин.)');
       return;
     }
@@ -495,9 +495,10 @@ export function ServicesTable({ data }: IServicesTableProps) {
           />
           <InputNumber
             min={1}
+            max={999}
             precision={0}
             value={newServiceDuration}
-            onChange={(v) => setNewServiceDuration(typeof v === 'number' ? v : 60)}
+            onChange={(v) => setNewServiceDuration(v)}
             style={{ width: 160 }}
             placeholder="Длительность"
             suffix="мин."
