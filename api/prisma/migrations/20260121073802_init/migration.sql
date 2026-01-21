@@ -146,7 +146,8 @@ CREATE TABLE "washing_posts" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "order" INTEGER NOT NULL DEFAULT 0,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "workFromMinutes" INTEGER NOT NULL DEFAULT 600,
+    "workToMinutes" INTEGER NOT NULL DEFAULT 1200,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
