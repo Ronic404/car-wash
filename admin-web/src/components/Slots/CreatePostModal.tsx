@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Form, Input, List, Modal, Popconfirm, Select, Typography, message } from 'antd';
+import { Button, Form, Input, List, Modal, Select, Typography, message } from 'antd';
+import EditPostModal from './EditPostModal';
 import type { IService } from '../../types/service';
 import type { IWashingPost } from '../../types/washingPost';
 import apiService from '../../services/apiService';
@@ -17,6 +18,7 @@ export default function CreatePostModal(props: ICreatePostModalProps) {
   const [form] = Form.useForm();
   const [isSaving, setIsSaving] = useState(false);
   const [services, setServices] = useState<IService[]>([]);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
 
   const onCreate = async () => {
     try {
@@ -37,31 +39,14 @@ export default function CreatePostModal(props: ICreatePostModalProps) {
     }
   };
 
-  const updateName = async (post: IWashingPost, name: string) => {
-    try {
-      if (!name.trim()) return;
-      await apiService.updateWashingPost(post.id, { name: name.trim() });
-      onUpdated();
-    } catch (error: unknown) {
-      const text = getAxiosErrorText(error) ?? (error instanceof Error ? error.message : 'Ошибка');
-      message.error(text);
-    }
-  };
-
-  const deletePost = async (post: IWashingPost) => {
-    try {
-      await apiService.deleteWashingPost(post.id);
-      message.success('Пост удалён');
-      onUpdated();
-    } catch (error: unknown) {
-      const text = getAxiosErrorText(error) ?? (error instanceof Error ? error.message : 'Ошибка');
-      message.error(text);
-    }
-  };
-
   const sortedPosts = useMemo(
     () => [...posts].sort((a, b) => a.order - b.order),
     [posts]
+  );
+
+  const editingPost = useMemo(
+    () => (editingPostId ? posts.find((p) => p.id === editingPostId) ?? null : null),
+    [editingPostId, posts]
   );
 
   useEffect(() => {
@@ -91,7 +76,24 @@ export default function CreatePostModal(props: ICreatePostModalProps) {
         </Button>,
       ]}
     >
+      <List
+        dataSource={sortedPosts}
+        locale={{ emptyText: 'Постов пока нет' }}
+        renderItem={(post) => (
+          <List.Item
+            actions={[
+              <Button key="edit" onClick={() => setEditingPostId(post.id)}>
+                Редактировать
+              </Button>,
+            ]}
+          >
+            <Typography.Text strong>{post.name}</Typography.Text>
+          </List.Item>
+        )}
+      />
+
       <Form
+        style={{ marginTop: 16 }}
         form={form}
         layout="vertical"
         initialValues={{ serviceIds: [] }}
@@ -121,35 +123,14 @@ export default function CreatePostModal(props: ICreatePostModalProps) {
         </Form.Item>
       </Form>
 
-      <div style={{ marginTop: 16 }}>
-        <Typography.Text type="secondary">Существующие посты</Typography.Text>
-        <List
-          dataSource={sortedPosts}
-          locale={{ emptyText: 'Постов пока нет' }}
-          renderItem={(post) => (
-            <List.Item
-              actions={[
-                <Popconfirm
-                  key="delete"
-                  title="Удалить пост?"
-                  description="Удаление возможно только если у поста нет записей/блокировок."
-                  onConfirm={() => deletePost(post)}
-                  okText="Удалить"
-                  cancelText="Отмена"
-                >
-                  <Button danger>Удалить</Button>
-                </Popconfirm>,
-              ]}
-            >
-              <Input
-                defaultValue={post.name}
-                onBlur={(e) => updateName(post, e.target.value)}
-                style={{ maxWidth: 320 }}
-              />
-            </List.Item>
-          )}
+      {editingPost &&
+        <EditPostModal
+          open={true}
+          post={editingPost}
+          onClose={() => setEditingPostId(null)}
+          onUpdated={onUpdated}
         />
-      </div>
+      }
     </Modal>
   );
 }
