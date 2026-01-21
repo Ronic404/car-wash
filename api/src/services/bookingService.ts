@@ -51,12 +51,16 @@ class BookingService {
       const endAt = addMinutes(data.startAt, service.duration);
 
       // Проверяем, что услуга разрешена на посту
-      const allowed = await prisma.washingPostService.findUnique({
-        where: {
-          postId_serviceId: { postId: data.postId, serviceId: data.serviceId },
+      const post = await prisma.washingPost.findUnique({
+        where: { id: data.postId },
+        select: { 
+          services: { 
+            where: { id: data.serviceId },
+            select: { id: true },
+          }, 
         },
       });
-      if (!allowed) {
+      if (!post || post.services.length === 0) {
         throw new Error('Услуга недоступна на выбранном посту');
       }
 

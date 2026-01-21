@@ -12,7 +12,7 @@ class WashingPostService {
     try {
       const posts = await prisma.washingPost.findMany({
         include: {
-          services: { include: { service: true } },
+          services: true,
         },
         orderBy: { order: 'asc' },
       });
@@ -49,12 +49,12 @@ class WashingPostService {
           workToMinutes: data.workToMinutes,
           services: data.serviceIds?.length
             ? {
-              create: data.serviceIds.map((serviceId) => ({ serviceId })),
+              connect: data.serviceIds.map((id) => ({ id })),
             }
             : undefined,
         },
         include: {
-          services: { include: { service: true } },
+          services: true,
         },
       });
 
@@ -89,13 +89,12 @@ class WashingPostService {
           workToMinutes: data.workToMinutes,
           services: data.serviceIds
             ? {
-              deleteMany: {},
-              create: data.serviceIds.map((serviceId) => ({ serviceId })),
+              set: data.serviceIds.map((id) => ({ id })),
             }
             : undefined,
         },
         include: {
-          services: { include: { service: true } },
+          services: true,
         },
       });
 

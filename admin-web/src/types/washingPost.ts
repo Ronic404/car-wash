@@ -1,13 +1,5 @@
 import type { IService } from './service';
 
-interface IWashingPostServiceLink {
-  id: string;
-  postId: string;
-  serviceId: string;
-  service: IService;
-  createdAt?: string;
-}
-
 /**
  * Моечный пост
  */
@@ -17,7 +9,7 @@ export interface IWashingPost {
   order: number;
   workFromMinutes: number;
   workToMinutes: number;
-  services?: IWashingPostServiceLink[];
+  services?: IService[];
   createdAt?: string;
   updatedAt?: string;
 }

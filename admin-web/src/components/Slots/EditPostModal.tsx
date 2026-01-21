@@ -57,7 +57,7 @@ export default function EditPostModal(props: IEditPostModalProps) {
     if (!open) return;
     form.setFieldsValue({
       name: post.name,
-      serviceIds: post.services?.map((x) => x.serviceId) ?? [],
+      serviceIds: post.services?.map((x) => x.id) ?? [],
       workFrom: minutesToDayjs(post.workFromMinutes, 10 * 60),
       workTo: minutesToDayjs(post.workToMinutes, 20 * 60),
     });

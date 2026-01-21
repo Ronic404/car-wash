@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Divider, Form, Modal, Switch, TimePicker, Typography, message, Select } from 'antd';
+import { Button, Divider, Form, Modal, Switch, TimePicker, Typography, message } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
-import type { IService } from '../../types/service';
 import type { IWashingPost } from '../../types/washingPost';
 import type { IWashingPostSchedule } from '../../types/washingPostSchedule';
 import apiService from '../../services/apiService';
@@ -39,7 +38,6 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
   const { open, date, posts, schedules, onClose, onUpdated } = props;
   const [form] = Form.useForm();
   const [isSaving, setIsSaving] = useState(false);
-  const [services, setServices] = useState<IService[]>([]);
   const { isMobile } = useScreenSize();
 
   const dayStr = useMemo(() => dayjs(date).format('YYYY-MM-DD'), [date]);
@@ -63,7 +61,6 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
             isActive: s?.isActive ?? false,
             workFrom: minutesToTime(s?.workFromMinutes ?? p.workFromMinutes ?? 10 * 60),
             workTo: minutesToTime(s?.workToMinutes ?? p.workToMinutes ?? 20 * 60),
-            serviceIds: p.services?.map((x) => x.serviceId) ?? [],
           };
         }),
     };
@@ -74,19 +71,6 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
     form.setFieldsValue(initialValues);
   }, [open, form, initialValues]);
 
-  useEffect(() => {
-    if (!open) return;
-    (async () => {
-      try {
-        const list = await apiService.getServices();
-        setServices(list);
-      } catch (error: unknown) {
-        const text = getAxiosErrorText(error) ?? (error instanceof Error ? error.message : 'Ошибка');
-        message.error(text);
-      }
-    })();
-  }, [open]);
-
   const save = async () => {
     try {
       const values = await form.validateFields();
@@ -95,28 +79,20 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
         isActive: boolean;
         workFrom: Dayjs;
         workTo: Dayjs;
-        serviceIds: string[];
       }> = values.rows;
 
       setIsSaving(true);
-      await Promise.all([
-        Promise.all(
-          rows.map((r) =>
-            apiService.upsertWashingPostSchedule({
-              postId: r.postId,
-              date: dayStr,
-              isActive: r.isActive,
-              workFromMinutes: timeToMinutes(r.workFrom),
-              workToMinutes: timeToMinutes(r.workTo),
-            })
-          )
-        ),
-        Promise.all(
-          rows.map((r) =>
-            apiService.updateWashingPost(r.postId, { serviceIds: r.serviceIds })
-          )
-        ),
-      ]);
+      await Promise.all(
+        rows.map((r) =>
+          apiService.upsertWashingPostSchedule({
+            postId: r.postId,
+            date: dayStr,
+            isActive: r.isActive,
+            workFromMinutes: timeToMinutes(r.workFrom),
+            workToMinutes: timeToMinutes(r.workTo),
+          })
+        )
+      );
       message.success('Настройки дня сохранены');
       onUpdated();
       onClose();
@@ -133,7 +109,6 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
       title={`Настройки дня: ${dayjs(date).format('DD.MM.YYYY')}`}
       open={open}
       onCancel={onClose}
-      width={720}
       footer={[
         <Button key="close" onClick={onClose}>
           Закрыть
@@ -158,7 +133,7 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
                   key={field.key}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: isMobile ? '1fr' : '1fr 120px 140px 140px 1fr',
+                    gridTemplateColumns: isMobile ? '1fr' : '1fr 50px 140px 140px',
                     gap: 8,
                     alignItems: 'center',
                   }}
@@ -210,7 +185,11 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
                     </div>
                   ) : (
                     <>
-                      <Form.Item name={[field.name, 'isActive']} valuePropName="checked" style={{ marginBottom: 0 }}>
+                      <Form.Item
+                        name={[field.name, 'isActive']}
+                        valuePropName="checked"
+                        style={{ marginBottom: 0, justifySelf: 'start' }}
+                      >
                         <Switch />
                       </Form.Item>
 
@@ -221,6 +200,7 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
                       >
                         <TimePicker
                           {...timePickerProps}
+                          style={{ width: '100%' }}
                         />
                       </Form.Item>
 
@@ -231,27 +211,11 @@ export default function DaySettingsModal(props: IDaySettingsModalProps) {
                       >
                         <TimePicker
                           {...timePickerProps}
+                          style={{ width: '100%' }}
                         />
                       </Form.Item>
                     </>
                   )}
-
-                  <Form.Item
-                    name={[field.name, 'serviceIds']}
-                    rules={[{ required: true, message: 'Выберите услуги' }]}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Select
-                      mode="multiple"
-                      placeholder="Услуги"
-                      optionFilterProp="label"
-                      style={isMobile ? { width: '100%' } : undefined}
-                      options={services
-                        .filter((s) => s.isActive)
-                        .sort((a, b) => a.order - b.order)
-                        .map((s) => ({ value: s.id, label: s.name }))}
-                    />
-                  </Form.Item>
                 </div>
               ))}
             </div>

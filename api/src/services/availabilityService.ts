@@ -43,7 +43,7 @@ class AvailabilityService {
           date: { gte: dayStart(options.dateFrom), lte: options.dateTo },
           isActive: true,
           post: {
-            services: { some: { serviceId: options.serviceId } },
+            services: { some: { id: options.serviceId } },
           },
         },
         include: { post: true },
