@@ -42,6 +42,7 @@ model Car {
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   bookings Booking[]
 
+  @@index([userId])
   @@map("cars")
 }
 
@@ -120,6 +121,8 @@ model Booking {
   post    WashingPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([carId])
+  @@index([serviceId])
   @@index([status])
   @@index([postId])
   @@index([startAt])
@@ -152,6 +155,7 @@ model TimeBlock {
   service   Service?    @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 
   @@index([postId])
+  @@index([serviceId])
   @@index([startAt])
   @@index([endAt])
   @@map("time_blocks")
