@@ -1,6 +1,6 @@
 import prisma from '../config/database';
 import logger from '../config/logger';
-import { BookingStatus } from '@prisma/client';
+import { BookingStatus } from '../generated/prisma/client';
 
 function addMinutes(d: Date, minutes: number): Date {
   return new Date(d.getTime() + minutes * 60 * 1000);

@@ -1,6 +1,7 @@
 node_modules/
 dist/
 build/
+.cursor/
 .env
 .env.local
 .env.*.local
@@ -12,4 +13,7 @@ coverage/
 *.swp
 *.swo
 *~
+
+# Prisma v7 generated client (configured in api/prisma/schema.prisma)
+api/src/generated/prisma/
 
