@@ -3,12 +3,14 @@ import logger from '../config/logger';
 
 type Interval = { start: Date; end: Date };
 
+const MS_PER_MINUTE = 60_000;
+
 function overlap(a: Interval, b: Interval): boolean {
   return a.start < b.end && b.start < a.end;
 }
 
 function addMinutes(d: Date, minutes: number): Date {
-  return new Date(d.getTime() + minutes * 60 * 1000);
+  return new Date(d.getTime() + minutes * MS_PER_MINUTE);
 }
 
 function dayStart(d: Date): Date {
@@ -109,12 +111,15 @@ class AvailabilityService {
         if (rangeEnd <= rangeStart) continue;
 
         // Округляем старт вверх до ближайшего шага
-        let cursor = new Date(rangeStart);
-        const minutesFromDayStart = Math.floor((cursor.getTime() - day.getTime()) / 60000);
+        let cursorMs = rangeStart.getTime();
+        const minutesFromDayStart = Math.floor((cursorMs - day.getTime()) / MS_PER_MINUTE);
         const remainder = minutesFromDayStart % stepMinutes;
         if (remainder !== 0) {
-          cursor = addMinutes(cursor, stepMinutes - remainder);
+          cursorMs += (stepMinutes - remainder) * MS_PER_MINUTE;
         }
+        // Нормализуем до начала минуты (чтобы не было дублей из-за секунд/миллисекунд)
+        cursorMs = Math.floor(cursorMs / MS_PER_MINUTE) * MS_PER_MINUTE;
+        let cursor = new Date(cursorMs);
 
         const busy = busyByPost.get(s.postId) ?? [];
 
