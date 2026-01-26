@@ -17,3 +17,5 @@ coverage/
 # Prisma v7 generated client (configured in api/prisma/schema.prisma)
 api/src/generated/prisma/
 
+# Local database backups
+backups/

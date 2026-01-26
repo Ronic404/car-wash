@@ -134,6 +134,20 @@ cd admin-web && npm run dev
 
 Проект включает `docker-compose.yml` для запуска PostgreSQL базы данных локально.
 
+## Бэкапы базы данных (dev)
+
+Для dev используется локальный ежедневный бэкап PostgreSQL из Docker контейнера.
+
+Файлы:
+- Скрипт: `scripts/backup-postgres.sh`
+- Пример cron: `scripts/backup-cron.example`
+- Папка бэкапов: `backups/` (игнорируется в git)
+
+Настройка:
+1. Убедитесь, что в корневом `.env` есть `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`.
+2. Добавьте cron из `scripts/backup-cron.example`.
+3. Ротация: по умолчанию храним 7 дней. Можно переопределить переменной `RETENTION_DAYS`.
+
 ### Настройка переменных окружения
 
 Перед первым запуском настройте переменные окружения:

@@ -31,6 +31,8 @@ LOG_FILE_PATH=./logs
 TELEGRAM_BOT_TOKEN=your-telegram-bot-token
 ```
 
+Бэкапы базы данных для dev настраиваются в корне проекта (см. `README.md` в root).
+
 2. Настройте базу данных:
 
 ```bash
