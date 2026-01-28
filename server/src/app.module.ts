@@ -1,10 +1,15 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { WinstonModule } from 'nest-winston';
+
+import { loggerConfig } from './logger';
+import { AdminModule } from './admin';
+import { PrismaModule } from './prisma';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    WinstonModule.forRoot(loggerConfig),
+    AdminModule,
+    PrismaModule,
+  ],
 })
 export class AppModule {}

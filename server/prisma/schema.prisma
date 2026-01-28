@@ -1,0 +1,227 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Пользователи (клиенты)
+model User {
+  id        String   @id @default(uuid())
+  telegramId String @unique
+  firstName String?
+  lastName  String?
+  username  String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cars     Car[]
+  bookings Booking[]
+
+  @@map("users")
+}
+
+// Автомобили клиентов
+model Car {
+  id        String   @id @default(uuid())
+  userId    String
+  brand     String   // Марка
+  model     String   // Модель
+  year      Int?     // Год выпуска
+  color     String?  // Цвет
+  licensePlate String? // Гос. номер
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([userId])
+  @@map("cars")
+}
+
+// Категории автомобилей
+model CarCategory {
+  id        String   @id @default(uuid())
+  name      String   // Название категории (легковой, внедорожник, грузовой и т.д.)
+  order     Int      @default(0) // Порядок отображения
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  servicePrices ServicePrice[]
+
+  @@index([order])
+  @@map("car_categories")
+}
+
+// Услуги автомойки
+model Service {
+  id          String   @id @default(uuid())
+  name        String   // Название услуги
+  description String?  // Описание
+  duration    Int      // Длительность в минутах (единая для услуги)
+  order       Int      @default(0) // Порядок отображения
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings     Booking[]
+  servicePrices ServicePrice[]
+  washingPosts WashingPost[]
+  timeBlocks  TimeBlock[]
+
+  @@index([order])
+  @@map("services")
+}
+
+// Связь услуги с категорией автомобиля (цена)
+model ServicePrice {
+  id        String   @id @default(uuid())
+  serviceId String
+  categoryId String
+  price     Float    // Цена для данной категории
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  service  Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  category CarCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, categoryId])
+  @@index([serviceId])
+  @@index([categoryId])
+  @@map("service_prices")
+}
+
+// Записи клиентов
+model Booking {
+  id        String   @id @default(uuid())
+  userId    String
+  carId     String
+  serviceId String
+  postId    String
+  startAt   DateTime
+  durationMinutes Int
+  status    BookingStatus @default(PENDING)
+  notes     String?  // Заметки
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  confirmedAt DateTime?
+  cancelledAt DateTime?
+
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  car     Car       @relation(fields: [carId], references: [id], onDelete: Cascade)
+  service Service   @relation(fields: [serviceId], references: [id])
+  post    WashingPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([carId])
+  @@index([serviceId])
+  @@index([status])
+  @@index([postId])
+  @@index([startAt])
+  @@unique([postId, startAt])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING    // Ожидает подтверждения
+  CONFIRMED  // Подтверждена
+  CANCELLED  // Отменена
+  COMPLETED  // Завершена
+}
+
+// Блокировка времени/ручная запись администратора (не видна клиентам, но занимает время на посту)
+model TimeBlock {
+  id        String   @id @default(uuid())
+  postId    String
+  startAt   DateTime
+  endAt     DateTime
+  kind      TimeBlockKind @default(BLOCK)
+  serviceId String?
+  carBrand  String?
+  carModel  String?
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post      WashingPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  service   Service?    @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@index([postId])
+  @@index([serviceId])
+  @@index([startAt])
+  @@index([endAt])
+  @@map("time_blocks")
+}
+
+enum TimeBlockKind {
+  BLOCK          // Блокировка (перерыв/поломка)
+  MANUAL_BOOKING // Ручная запись (клиент может быть не в базе)
+}
+
+// Администраторы
+model AdminUser {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Хешированный пароль
+  firstName String
+  lastName  String?
+  isActive  Boolean  @default(true)
+  role      AdminRole @default(REGULAR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLogin DateTime?
+
+  @@map("admin_users")
+}
+
+enum AdminRole {
+  MAIN
+  REGULAR
+}
+
+// Моечные посты
+model WashingPost {
+  id        String   @id @default(uuid())
+  name      String   // Название поста (например "Пост 1")
+  order     Int      @default(0) // Порядок отображения
+  workFromMinutes Int @default(600) // 10:00
+  workToMinutes   Int @default(1200) // 20:00
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings  Booking[]
+  services  Service[]
+  schedules WashingPostSchedule[]
+  timeBlocks TimeBlock[]
+
+  @@index([order])
+  @@map("washing_posts")
+}
+
+// Настройки моечного поста на конкретную дату (уникально на день)
+model WashingPostSchedule {
+  id              String   @id @default(uuid())
+  postId          String
+  date            DateTime // Дата (день)
+  isActive        Boolean  @default(true)
+  workFromMinutes Int      @default(540) // 09:00
+  workToMinutes   Int      @default(1080) // 18:00
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  post            WashingPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, date])
+  @@index([date])
+  @@map("washing_post_schedules")
+}
+
