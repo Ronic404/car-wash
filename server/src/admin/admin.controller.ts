@@ -1,6 +1,6 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from "@nestjs/common";
+import { Controller, Get, HttpCode, HttpStatus, Param } from "@nestjs/common";
 import { AdminService } from "./admin.service";
-import { AdminDto, LoginDto, TokenDto } from "./dto";
+import { AdminDto } from "./dto";
 
 @Controller('admins')
 export class AdminController {
@@ -22,14 +22,5 @@ export class AdminController {
     @HttpCode(HttpStatus.OK)
     getMe(@Param('token') token: string): Promise<AdminDto> {
         return this.adminService.getMe(token);
-    }
-
-    /**
-     * Вход администратора
-     */
-    @Post('login')
-    @HttpCode(HttpStatus.OK)
-    login(@Body() body: LoginDto): Promise<TokenDto> {
-        return this.adminService.loginAdmin(body);
     }
 }

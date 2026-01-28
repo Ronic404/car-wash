@@ -1,17 +1,17 @@
-import { Inject, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "winston";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 
-import { AdminDto, LoginDto, TokenDto } from "./dto";
+import { AdminDto } from "./dto";
 import { PrismaService } from "../prisma";
+import { JwtService } from "../auth";
 
 @Injectable()
 export class AdminService {
     constructor(
         @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger,
         private readonly prisma: PrismaService,
+        private readonly jwtService: JwtService,
     ) { }
 
     /**
@@ -43,80 +43,7 @@ export class AdminService {
      * Получение информации о текущем администраторе
      */
     async getMe(token: string): Promise<AdminDto> {
-        const JWT_SECRET = process.env.JWT_SECRET;
-
-        if (!JWT_SECRET) {
-            this.logger.warn('JWT_SECRET не установлен в переменных окружения');
-            throw new InternalServerErrorException('Ошибка конфигурации сервера');
-        }
-
-        const decoded = jwt.verify(token, JWT_SECRET) as { adminId: string };
-        const adminId = decoded.adminId;
-
-        return this.getAdminById(adminId);
-    }
-
-    /**
-     * Вход администратора
-     */
-    async loginAdmin({ email, password }: LoginDto): Promise<TokenDto> {
-        const admin = await this.prisma.adminUser.findUnique({
-            where: { email },
-        })
-
-        if (!admin) {
-            this.logger.warn('Неверный email или пароль');
-            throw new UnauthorizedException('Неверный email или пароль');
-        }
-
-        if (!admin.isActive) {
-            this.logger.warn('Аккаунт ожидает подтверждения main-администратором');
-            throw new UnauthorizedException('Аккаунт ожидает подтверждения main-администратором');
-        }
-
-        const isPasswordValid = await bcrypt.compare(password, admin.password);
-
-        if (!isPasswordValid) {
-            this.logger.warn('Неверный email или пароль');
-            throw new UnauthorizedException('Неверный email или пароль');
-        }
-
-        // Обновляем время последнего входа
-        await this.prisma.adminUser.update({
-            where: { id: admin.id },
-            data: { lastLogin: new Date() },
-        });
-
-        // Генерируем JWT токен
-        const secret = process.env.JWT_SECRET;
-        if (!secret) {
-            this.logger.warn('JWT_SECRET не установлен');
-            throw new InternalServerErrorException('JWT_SECRET не установлен');
-        }
-
-        const token = jwt.sign(
-            {
-                adminId: admin.id,
-                email: admin.email,
-            },
-            secret,
-            {
-                expiresIn: '7d',
-            }
-        );
-
-        this.logger.log('Администратор вошел в систему', { adminId: admin.id });
-
-        return { token };
-        // return {
-        //     token,
-        //     admin: {
-        //         id: admin.id,
-        //         email: admin.email,
-        //         firstName: admin.firstName,
-        //         lastName: admin.lastName,
-        //         role: admin.role,
-        //     },
-        // };
+        const decoded = this.jwtService.parseToken(token);
+        return this.getAdminById(decoded.adminId);
     }
 }
