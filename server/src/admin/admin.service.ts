@@ -1,10 +1,10 @@
-import { Inject, Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Logger } from "winston";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 
-import { LoginDto, TokenDto } from "./dto";
+import { AdminDto, LoginDto, TokenDto } from "./dto";
 import { PrismaService } from "../prisma";
 
 @Injectable()
@@ -13,6 +13,48 @@ export class AdminService {
         @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger,
         private readonly prisma: PrismaService,
     ) { }
+
+    /**
+     * Получение администратора по ID
+     */
+    async getAdminById(id: string): Promise<AdminDto> {
+        const admin = await this.prisma.adminUser.findUnique({
+            where: { id },
+        });
+
+        if (!admin) {
+            this.logger.warn('Администратор не найден');
+            throw new NotFoundException('Администратор не найден');
+        }
+
+        return {
+            id: admin.id,
+            email: admin.email,
+            firstName: admin.firstName,
+            lastName: admin.lastName,
+            isActive: admin.isActive,
+            role: admin.role,
+            createdAt: admin.createdAt,
+            lastLogin: admin.lastLogin,
+        };
+    }
+
+    /**
+     * Получение информации о текущем администраторе
+     */
+    async getMe(token: string): Promise<AdminDto> {
+        const JWT_SECRET = process.env.JWT_SECRET;
+
+        if (!JWT_SECRET) {
+            this.logger.warn('JWT_SECRET не установлен в переменных окружения');
+            throw new InternalServerErrorException('Ошибка конфигурации сервера');
+        }
+
+        const decoded = jwt.verify(token, JWT_SECRET) as { adminId: string };
+        const adminId = decoded.adminId;
+
+        return this.getAdminById(adminId);
+    }
 
     /**
      * Вход администратора
@@ -64,7 +106,7 @@ export class AdminService {
         );
 
         this.logger.log('Администратор вошел в систему', { adminId: admin.id });
-        
+
         return { token };
         // return {
         //     token,
