@@ -1,6 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { Logger } from "winston";
-import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from "nest-winston";
 
 import { AdminDto } from "./dto";
 import { PrismaService } from "../prisma";
@@ -9,7 +8,7 @@ import { JwtService } from "../auth";
 @Injectable()
 export class AdminService {
     constructor(
-        @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger,
+        @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: WinstonLogger,
         private readonly prisma: PrismaService,
         private readonly jwtService: JwtService,
     ) { }

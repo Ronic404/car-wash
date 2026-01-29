@@ -1,13 +1,12 @@
 import { Inject, Injectable, InternalServerErrorException } from "@nestjs/common";
 import jwt from "jsonwebtoken";
-import { Logger } from "winston";
-import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from "nest-winston";
 
 import { JwtDto } from "./dto";
 
 @Injectable()
 export class JwtService {
-    constructor(@Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger) { }
+    constructor(@Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: WinstonLogger) { }
 
     /*
      * Генерируем JWT токен
