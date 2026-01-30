@@ -3,15 +3,36 @@ import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from "nest-winston";
 
 import { AdminDto } from "./dto";
 import { PrismaService } from "../prisma";
-import { JwtService } from "../auth";
+import { AdminUser } from "../generated/prisma/client";
 
 @Injectable()
 export class AdminService {
     constructor(
         @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: WinstonLogger,
         private readonly prisma: PrismaService,
-        private readonly jwtService: JwtService,
     ) { }
+
+    /**
+     * Получение всех администраторов
+     */
+    async getAllAdmins(): Promise<Omit<AdminUser, "password" | "updatedAt">[]> {
+        const admins = await this.prisma.adminUser.findMany({
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                isActive: true,
+                role: true,
+                createdAt: true,
+                lastLogin: true,
+                password: false,
+                updatedAt: false,
+            },
+            orderBy: [{ createdAt: 'desc' }],
+        });
+        return admins;
+    }
 
     /**
      * Получение администратора по ID
@@ -36,13 +57,5 @@ export class AdminService {
             createdAt: admin.createdAt,
             lastLogin: admin.lastLogin,
         };
-    }
-
-    /**
-     * Получение информации о текущем администраторе
-     */
-    async getMe(token: string): Promise<AdminDto> {
-        const decoded = this.jwtService.parseToken(token);
-        return this.getAdminById(decoded.adminId);
     }
 }

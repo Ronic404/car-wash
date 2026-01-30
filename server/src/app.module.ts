@@ -9,9 +9,9 @@ import { AuthModule } from './auth';
 @Module({
   imports: [
     WinstonModule.forRoot(loggerConfig),
-    AdminModule,
-    AuthModule,
     PrismaModule,
+    AuthModule,
+    AdminModule,
   ],
 })
 export class AppModule {}
