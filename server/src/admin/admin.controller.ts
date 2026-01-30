@@ -12,7 +12,7 @@ import {
 import { AdminService } from './admin.service';
 import { AdminDto } from './dto';
 import { AdminUser } from '../generated/prisma/client';
-import { AuthGuard } from '../auth/guards';
+import { AuthGuard, MainAdminGuard } from '../auth/guards';
 
 @UseGuards(AuthGuard)
 @Controller('admins')
@@ -23,6 +23,7 @@ export class AdminController {
    * Получение списка администраторов (только main)
    */
   @Get()
+  @UseGuards(MainAdminGuard)
   @HttpCode(HttpStatus.OK)
   getAllAdmins(): Promise<Omit<AdminUser, 'password' | 'updatedAt'>[]> {
     return this.adminService.getAllAdmins();
