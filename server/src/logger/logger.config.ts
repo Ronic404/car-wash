@@ -33,11 +33,11 @@ const fileFormat = isProduction
       winston.format.errors({ stack: true }),
       winston.format.printf(
         ({ timestamp, level, message, service, ...meta }) => {
-          const serviceStr = service ? `[${service}] ` : '';
+          const serviceStr = service ? `[${JSON.stringify(service)}] ` : '';
           const metaStr = Object.keys(meta).length
             ? JSON.stringify(meta, null, 2)
             : '';
-          return `${timestamp} ${serviceStr}[${level.toUpperCase()}]: ${message}${metaStr ? ' ' + metaStr : ''}`;
+          return `${JSON.stringify(timestamp)} ${serviceStr}[${level.toUpperCase()}]: ${JSON.stringify(message)}${metaStr ? ' ' + metaStr : ''}`;
         },
       ),
     );
@@ -58,7 +58,7 @@ const consoleFormat = isProduction
         const metaStr = Object.keys(meta).length
           ? JSON.stringify(meta, null, 2)
           : '';
-        return `${timestamp} [${level}]: ${message} ${metaStr}`;
+        return `${JSON.stringify(timestamp)} [${level}]: ${JSON.stringify(message)} ${metaStr}`;
       }),
     );
 
