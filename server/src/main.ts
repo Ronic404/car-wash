@@ -28,10 +28,14 @@ async function bootstrap() {
     .setTitle('Car Wash API')
     .setDescription('Car Wash API description')
     .setVersion('1.0')
+    .addBearerAuth()
     .addTag('car-wash')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup(`${API_PREFIX}/docs`, app, documentFactory);
+  SwaggerModule.setup(`${API_PREFIX}/docs`, app, documentFactory, {
+    // Ссылка на скачивание спецификации OpenAPI в формате YAML
+    yamlDocumentUrl: `${API_PREFIX}/docs.yaml`,
+  });
 
   await app.listen(process.env.PORT ?? 3200);
 }
