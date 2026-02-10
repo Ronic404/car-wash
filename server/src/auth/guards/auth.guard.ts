@@ -11,18 +11,6 @@ import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 import { JwtService } from '../jwt.service';
 
 /**
- * Расширение типа Request для добавления информации об администраторе
- */
-declare module 'express-serve-static-core' {
-  interface Request {
-    admin?: {
-      adminId: string;
-      email: string;
-    };
-  }
-}
-
-/**
  * Guard для проверки JWT токена администратора
  */
 @Injectable()
