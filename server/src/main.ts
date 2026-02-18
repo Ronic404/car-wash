@@ -1,6 +1,7 @@
 import './types/express';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
@@ -9,6 +10,7 @@ const API_PREFIX = 'api';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
   app.setGlobalPrefix(API_PREFIX);
 
@@ -38,7 +40,8 @@ async function bootstrap() {
     yamlDocumentUrl: `${API_PREFIX}/docs.yaml`,
   });
 
-  await app.listen(process.env.PORT ?? 3200);
+  const port = configService.get<number>('API_PORT', 3200);
+  await app.listen(port);
 }
 
 bootstrap().catch((err) => {
